@@ -21,7 +21,7 @@
   .stars { display: inline-flex; gap: 1px; }
 
   /* Map */
-  #leaflet-map { width: 100%; height: 100%; z-index: 0; }
+  #leaflet-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; }
   .leaflet-control-zoom { display: none !important; }
   .leaflet-control-attribution { font-size: 8px !important; opacity: 0.5; }
 
@@ -238,12 +238,6 @@ function initMap() {
   const el = document.getElementById('leaflet-map');
   if(!el) return;
 
-  // Fix size
-  el.style.width = '100%';
-  el.style.height = '100%';
-  el.style.position = 'absolute';
-  el.style.inset = '0';
-
   if(leafletMap) {
     leafletMap.remove();
     leafletMap = null;
@@ -256,6 +250,10 @@ function initMap() {
     attributionControl: true
   });
 
+  // Force correct size — fixes gray stripes bug
+  setTimeout(() => { leafletMap.invalidateSize(true); }, 100);
+  setTimeout(() => { leafletMap.invalidateSize(true); }, 400);
+
   const tile = isDark ? TILES.dark : TILES.light;
   leafletLayer = L.tileLayer(tile.url, {
     attribution: tile.attr,
@@ -267,7 +265,7 @@ function initMap() {
   VENUES.forEach(v => addMarker(v));
 
   // close sheet on map click
-  leafletMap.on('click', () => {
+  leafletMap.on("click", () => {
     selectedMarkerId = null;
     document.getElementById('mapSheet')?.remove();
     updateMarkerStyles();
@@ -335,7 +333,11 @@ function toggleTheme() {
   document.getElementById('themeBtn').textContent = isDark?'☀️':'🌙';
   if(leafletMap && leafletLayer) {
     leafletMap.removeLayer(leafletLayer);
-    const tile = isDark ? TILES.dark : TILES.light;
+    // Force correct size — fixes gray stripes bug
+  setTimeout(() => { leafletMap.invalidateSize(true); }, 100);
+  setTimeout(() => { leafletMap.invalidateSize(true); }, 400);
+
+  const tile = isDark ? TILES.dark : TILES.light;
     leafletLayer = L.tileLayer(tile.url, {
       attribution: tile.attr, maxZoom: 19, subdomains: 'abcd'
     }).addTo(leafletMap);

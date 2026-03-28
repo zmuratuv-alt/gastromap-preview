@@ -13,7 +13,7 @@
   body { margin: 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e1b4b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .phone { width: 390px; height: 844px; background: #f9fafb; border-radius: 40px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 12px #1a1a2e; display: flex; flex-direction: column; flex-shrink: 0; }
   .screen { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-  .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
   .tab-bar { background: white; display: flex; border-top: 1px solid #e5e7eb; flex-shrink: 0; }
   .tab-btn { flex: 1; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; cursor: pointer; font-size: 10px; font-weight: 500; color: #9ca3af; transition: color 0.2s; }
   .tab-btn.active { color: #2563eb; }
@@ -31,7 +31,7 @@
   .venue-marker.fav::after { content: '♥'; position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; border: 1.5px solid white; }
 
   /* Map overlay controls */
-  .map-wrap { position: relative; flex: 1; overflow: hidden; }
+  .map-wrap { position: absolute; inset: 0; }
   .map-search-bar { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 500; background: white; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
   .map-search-bar input { border: none; outline: none; flex: 1; font-size: 13px; font-family: inherit; background: none; }
   .theme-toggle { position: absolute; top: 60px; right: 10px; z-index: 500; width: 36px; height: 36px; background: white; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; }
@@ -222,8 +222,12 @@ function render() {
       <div id="leaflet-map"></div>
     </div>`;
 
-    // init or re-attach map
-    setTimeout(initMap, 50);
+    // Ждём пока контейнер получит реальный размер
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        initMap();
+      });
+    });
   } else if(currentTab==='catalog') {
     c.innerHTML = renderCatalog();
   } else if(currentTab==='favorites') {
@@ -250,16 +254,15 @@ function initMap() {
     attributionControl: true
   });
 
-  // Force correct size — fixes gray stripes bug
-  setTimeout(() => { leafletMap.invalidateSize(true); }, 100);
-  setTimeout(() => { leafletMap.invalidateSize(true); }, 400);
-
   const tile = isDark ? TILES.dark : TILES.light;
   leafletLayer = L.tileLayer(tile.url, {
     attribution: tile.attr,
     maxZoom: 19,
     subdomains: 'abcd'
   }).addTo(leafletMap);
+
+  leafletMap.invalidateSize(true);
+  leafletLayer.once('load', () => { leafletMap.invalidateSize(true); });
 
   leafletMarkers = {};
   VENUES.forEach(v => addMarker(v));

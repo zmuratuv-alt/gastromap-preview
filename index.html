@@ -22,6 +22,17 @@
 
   /* Map */
   #leaflet-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; }
+  /* Убираем зазоры между тайлами карты */
+  .leaflet-tile { 
+    border-right: 1px solid transparent !important;
+    image-rendering: auto;
+  }
+  .leaflet-tile-container { 
+    width: 100% !important; 
+  }
+  .leaflet-layer {
+    will-change: auto;
+  }
   .leaflet-control-zoom { display: none !important; }
   .leaflet-control-attribution { font-size: 8px !important; opacity: 0.5; }
 
@@ -266,14 +277,22 @@ function initMap() {
     center: [56.8389, 60.6057],
     zoom: 14,
     zoomControl: false,
-    attributionControl: true
+    attributionControl: true,
+    zoomSnap: 1,
+    zoomDelta: 1,
+    preferCanvas: false
   });
 
   const tile = isDark ? TILES.dark : TILES.light;
   leafletLayer = L.tileLayer(tile.url, {
     attribution: tile.attr,
     maxZoom: 19,
-    subdomains: 'abcd'
+    subdomains: 'abcd',
+    detectRetina: false,
+    tileSize: 256,
+    updateWhenIdle: false,
+    updateWhenZooming: false,
+    keepBuffer: 4
   }).addTo(leafletMap);
 
   leafletMap.invalidateSize(true);

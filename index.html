@@ -6,87 +6,101 @@
 <title>GastroMap — Превью</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
   body { margin: 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e1b4b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .phone { width: 390px; height: 844px; background: #f9fafb; border-radius: 40px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 12px #1a1a2e; display: flex; flex-direction: column; flex-shrink: 0; }
   .screen { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+  .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
   .tab-bar { background: white; display: flex; border-top: 1px solid #e5e7eb; flex-shrink: 0; }
   .tab-btn { flex: 1; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; cursor: pointer; font-size: 10px; font-weight: 500; color: #9ca3af; transition: color 0.2s; }
   .tab-btn.active { color: #2563eb; }
   .tab-btn svg { width: 22px; height: 22px; }
   .stars { display: inline-flex; gap: 1px; }
-  .star { width: 12px; height: 12px; }
-  .venue-card { background: white; border-radius: 16px; overflow: hidden; display: flex; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); cursor: pointer; transition: box-shadow 0.2s; }
-  .venue-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-  .venue-img { width: 96px; height: 96px; object-fit: cover; flex-shrink: 0; }
-  .venue-img-placeholder { width: 96px; height: 96px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #374151; white-space: nowrap; transition: all 0.2s; }
-  .chip.active { background: #2563eb; color: white; border-color: #2563eb; }
-  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-  .chips-row::-webkit-scrollbar { display: none; }
-  .map-bg { background: #e8f0e8; position: relative; flex: 1; overflow: hidden; }
-  .map-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(180,210,180,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(180,210,180,0.4) 1px, transparent 1px); background-size: 36px 36px; }
-  .map-road-h { position: absolute; left: 0; right: 0; height: 7px; background: rgba(180,210,180,0.8); }
-  .map-road-v { position: absolute; top: 0; bottom: 0; width: 7px; background: rgba(180,210,180,0.8); }
-  .map-park { position: absolute; background: #c8e0c8; border-radius: 8px; }
-  .marker { position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 10; transition: transform 0.2s; }
-  .marker:hover { transform: translate(-50%, -50%) scale(1.2); }
-  .marker-dot { width: 38px; height: 38px; border-radius: 50%; background: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 3px 10px rgba(37,99,235,0.4); border: 2px solid white; }
-  .marker-dot.selected { background: #f97316; box-shadow: 0 3px 10px rgba(249,115,22,0.5); transform: scale(1.2); }
-  .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; padding: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 20; animation: slideUp 0.3s ease; }
+
+  /* Map */
+  #leaflet-map { width: 100%; height: 100%; z-index: 0; }
+  .leaflet-control-zoom { display: none !important; }
+  .leaflet-control-attribution { font-size: 8px !important; opacity: 0.5; }
+
+  /* Custom marker */
+  .venue-marker { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); border: 2.5px solid white; cursor: pointer; background: #2563eb; transition: transform 0.15s; }
+  .venue-marker.selected { background: #f97316; transform: scale(1.25); box-shadow: 0 4px 16px rgba(249,115,22,0.5); }
+  .venue-marker.fav::after { content: '♥'; position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; border: 1.5px solid white; }
+
+  /* Map overlay controls */
+  .map-wrap { position: relative; flex: 1; overflow: hidden; }
+  .map-search-bar { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 500; background: white; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .map-search-bar input { border: none; outline: none; flex: 1; font-size: 13px; font-family: inherit; background: none; }
+  .theme-toggle { position: absolute; top: 60px; right: 10px; z-index: 500; width: 36px; height: 36px; background: white; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .my-loc-btn { position: absolute; bottom: 90px; right: 10px; z-index: 500; width: 40px; height: 40px; background: white; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+
+  /* Bottom sheet */
+  .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; padding: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 600; animation: slideUp 0.25s ease; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .drag-handle { width: 40px; height: 4px; background: #d1d5db; border-radius: 2px; margin: 0 auto 12px; }
+
+  /* Scrollable tabs */
+  .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #374151; white-space: nowrap; transition: all 0.2s; }
+  .chip.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+  /* Venue card */
+  .venue-card { background: white; border-radius: 16px; overflow: hidden; display: flex; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); cursor: pointer; transition: box-shadow 0.2s; }
+  .venue-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+  /* Venue screen */
   .venue-screen { position: absolute; inset: 0; background: #f9fafb; z-index: 30; overflow-y: auto; animation: slideIn 0.3s ease; }
   @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   .hero { position: relative; height: 220px; flex-shrink: 0; }
   .hero img { width: 100%; height: 100%; object-fit: cover; }
   .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent); }
-  .hero-title { position: absolute; bottom: 16px; left: 16px; right: 50px; color: white; font-size: 20px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+
+  /* Action buttons */
   .action-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex: 1; }
   .action-icon { width: 52px; height: 52px; border-radius: 14px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-  .action-icon:hover { background: #e0e7ff; }
-  .action-label { font-size: 10px; color: #6b7280; font-weight: 500; text-align: center; }
-  .review-form { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; animation: fadeIn 0.2s; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .review-sheet { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
-  input, textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; resize: none; }
-  input:focus, textarea:focus { border-color: #2563eb; }
-  .btn-primary { width: 100%; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
-  .btn-primary:hover { background: #1d4ed8; }
-  .btn-outline { width: 100%; background: white; color: #2563eb; border: 1px solid #2563eb; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
-  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 10px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; z-index: 200; animation: toastAnim 0.3s ease; white-space: nowrap; }
-  @keyframes toastAnim { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* Misc */
+  .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
   .badge-open { background: #dcfce7; color: #16a34a; }
   .badge-closed { background: #fee2e2; color: #dc2626; }
-  .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
   .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #6b7280; }
-  .info-row svg { flex-shrink: 0; margin-top: 1px; }
+  .btn-primary { width: 100%; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .review-form { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 700; display: flex; align-items: flex-end; animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .review-sheet { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
+  input[type=text], textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; resize: none; }
+  input[type=text]:focus, textarea:focus { border-color: #2563eb; }
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 10px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; z-index: 800; animation: toastAnim 0.3s ease; white-space: nowrap; pointer-events: none; }
+  @keyframes toastAnim { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
-  .hint { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.85); backdrop-filter: blur(4px); padding: 4px 14px; border-radius: 100px; font-size: 11px; font-weight: 600; color: #374151; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.1); z-index: 5; }
 </style>
 </head>
 <body>
 
 <!-- Desktop label -->
-<div style="color:rgba(255,255,255,0.7); max-width:220px; margin-right:40px; display:none;" id="desktopLabel">
+<div style="color:rgba(255,255,255,0.7);max-width:220px;margin-right:40px;display:none" id="desktopLabel">
   <div style="font-size:56px;text-align:center;margin-bottom:16px">📱</div>
   <h2 style="color:white;font-size:22px;font-weight:700;text-align:center;margin:0 0 8px">GastroMap</h2>
   <p style="font-size:13px;text-align:center;line-height:1.6;margin:0 0 20px">Превью мобильного приложения для поиска кафе и ресторанов Екатеринбурга</p>
   <div style="font-size:13px;display:flex;flex-direction:column;gap:8px">
-    <div>✓ Карта с маркерами</div>
+    <div>✓ Реальная карта OpenStreetMap</div>
+    <div>✓ Тёмная и светлая тема</div>
     <div>✓ Каталог + поиск</div>
     <div>✓ Карточки заведений</div>
     <div>✓ Отзывы + чекины</div>
-    <div>✓ Избранное</div>
   </div>
 </div>
 
 <div class="phone" id="phone">
   <!-- Status bar -->
-  <div style="background:white;display:flex;justify-content:space-between;align-items:center;padding:8px 20px;flex-shrink:0">
+  <div style="background:white;display:flex;justify-content:space-between;align-items:center;padding:8px 20px;flex-shrink:0;position:relative;z-index:10" id="statusBar">
     <span style="font-size:12px;font-weight:700;color:#111">9:41</span>
     <div style="display:flex;align-items:center;gap:6px">
       <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="#111"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="#111"/><rect x="9" y="1" width="3" height="11" rx="1" fill="#111"/><rect x="13.5" y="3" width="2" height="5" rx="1" fill="#d1d5db"/></svg>
@@ -95,7 +109,7 @@
   </div>
 
   <!-- Screen -->
-  <div class="screen" id="mainScreen">
+  <div class="screen" id="mainScreen" style="position:relative">
     <div class="tab-content" id="tabContent"></div>
     <div class="tab-bar" id="tabBar">
       <button class="tab-btn active" onclick="switchTab('map')" id="tab-map">
@@ -121,112 +135,232 @@
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
 const VENUES = [
-  { id:1, name:"Buzon", cat:"Ресторан", icon:"🍽️", addr:"ул. Малышева, 137", rating:4.8, reviews:312, photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600", desc:"Один из лучших ресторанов Екатеринбурга с авторской кухней. Уютная атмосфера, внимательный персонал и изысканное меню.", cuisines:["Европейская","Авторская"], open:true, phone:"+7 343 200-01-01", fav:true, follow:false, stories:true, hours:{"Пн–Чт":"12:00–00:00","Пт–Сб":"12:00–02:00","Вс":"12:00–23:00"}, mx:52, my:44 },
-  { id:2, name:"Своя компания", cat:"Кафе", icon:"☕", addr:"пр. Ленина, 50/4", rating:4.6, reviews:856, photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600", desc:"Уральская сеть кафе с домашней атмосферой. Огромное меню, большие порции, демократичные цены.", cuisines:["Русская","Домашняя"], open:true, phone:"+7 343 200-02-02", fav:false, follow:true, stories:false, hours:{"Ежедневно":"10:00–23:00"}, mx:60, my:37 },
-  { id:3, name:"Хачапури и вино", cat:"Ресторан", icon:"🍷", addr:"ул. Вайнера, 16", rating:4.7, reviews:441, photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600", desc:"Грузинский ресторан с широким выбором вин и традиционными блюдами.", cuisines:["Грузинская"], open:true, phone:"+7 343 200-03-03", fav:false, follow:false, stories:true, hours:{"Пн–Вс":"11:00–01:00"}, mx:45, my:52 },
-  { id:4, name:"Döner Haus", cat:"Фастфуд", icon:"🍔", addr:"ул. 8 Марта, 46", rating:4.4, reviews:234, photo:"https://images.unsplash.com/photo-1561245926-1f1eca8eb3d3?w=600", desc:"Лучшие кебабы в городе. Свежие ингредиенты, быстрое обслуживание.", cuisines:["Турецкая","Стритфуд"], open:true, phone:"+7 343 200-04-04", fav:false, follow:false, stories:false, hours:{"Ежедневно":"09:00–23:00"}, mx:38, my:61 },
-  { id:5, name:"Portraits Coffee", cat:"Кафе", icon:"☕", addr:"ул. Красноармейская, 10", rating:4.9, reviews:189, photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600", desc:"Specialty-кофейня с топовыми обжарщиками России. Авторские напитки, тихая атмосфера.", cuisines:["Кофе","Десерты"], open:true, phone:"+7 343 200-05-05", fav:true, follow:true, stories:true, hours:{"Пн–Пт":"08:00–21:00","Сб–Вс":"09:00–22:00"}, mx:64, my:41 },
-  { id:6, name:"Ramen Street", cat:"Ресторан", icon:"🍜", addr:"ул. Попова, 3", rating:4.7, reviews:367, photo:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc:"Аутентичный рамен-бар. Бульон варится 12 часов, лапша своя.", cuisines:["Японская","Паназиатская"], open:true, phone:"+7 343 200-06-06", fav:false, follow:false, stories:false, hours:{"Пн–Вс":"12:00–22:00"}, mx:46, my:57 },
-  { id:7, name:"Pizzeria Moderna", cat:"Пиццерия", icon:"🍕", addr:"пр. Космонавтов, 18", rating:4.5, reviews:523, photo:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600", desc:"Неаполитанская пицца в дровяной печи. Тесто выдерживается 48 часов.", cuisines:["Итальянская"], open:true, phone:"+7 343 200-07-07", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–23:00"}, mx:68, my:32 },
-  { id:8, name:"Green Spot", cat:"Веганское", icon:"🥗", addr:"ул. Тургенева, 22", rating:4.6, reviews:145, photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc:"Веганское и вегетарианское кафе. Сезонное меню, суперфуды.", cuisines:["Веганское","ЗОЖ"], open:false, phone:"+7 343 200-08-08", fav:false, follow:false, stories:false, hours:{"Пн–Пт":"09:00–21:00","Сб":"10:00–20:00","Вс":"Закрыто"}, mx:55, my:48 },
-  { id:9, name:"Пельмени Club", cat:"Кафе", icon:"🥟", addr:"ул. Жукова, 5", rating:4.3, reviews:678, photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=600", desc:"Уральские пельмени ручной лепки 12 видов. Народное заведение с 20-летней историей.", cuisines:["Русская","Уральская"], open:true, phone:"+7 343 200-09-09", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–22:00"}, mx:34, my:66 },
-  { id:10, name:"Sushi Moto", cat:"Суши", icon:"🍣", addr:"ул. Декабристов, 32", rating:4.5, reviews:290, photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc:"Суши-бар с доставкой и залом. Свежая рыба, умелые мастера.", cuisines:["Японская","Суши"], open:true, phone:"+7 343 200-10-10", fav:false, follow:false, stories:true, hours:{"Ежедневно":"11:00–23:00"}, mx:50, my:40 },
+  { id:1, name:"Buzon", cat:"Ресторан", icon:"🍽️", addr:"ул. Малышева, 137", rating:4.8, reviews:312, photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600", desc:"Один из лучших ресторанов Екатеринбурга с авторской кухней. Уютная атмосфера, внимательный персонал и изысканное меню.", cuisines:["Европейская","Авторская"], open:true, phone:"+7 343 200-01-01", fav:true, follow:false, stories:true, hours:{"Пн–Чт":"12:00–00:00","Пт–Сб":"12:00–02:00","Вс":"12:00–23:00"}, lat:56.8385, lng:60.6098 },
+  { id:2, name:"Своя компания", cat:"Кафе", icon:"☕", addr:"пр. Ленина, 50/4", rating:4.6, reviews:856, photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600", desc:"Уральская сеть кафе с домашней атмосферой. Огромное меню, большие порции, демократичные цены.", cuisines:["Русская","Домашняя"], open:true, phone:"+7 343 200-02-02", fav:false, follow:true, stories:false, hours:{"Ежедневно":"10:00–23:00"}, lat:56.8415, lng:60.6142 },
+  { id:3, name:"Хачапури и вино", cat:"Ресторан", icon:"🍷", addr:"ул. Вайнера, 16", rating:4.7, reviews:441, photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600", desc:"Грузинский ресторан с широким выбором вин и традиционными блюдами.", cuisines:["Грузинская"], open:true, phone:"+7 343 200-03-03", fav:false, follow:false, stories:true, hours:{"Пн–Вс":"11:00–01:00"}, lat:56.8371, lng:60.6075 },
+  { id:4, name:"Döner Haus", cat:"Фастфуд", icon:"🍔", addr:"ул. 8 Марта, 46", rating:4.4, reviews:234, photo:"https://images.unsplash.com/photo-1561245926-1f1eca8eb3d3?w=600", desc:"Лучшие кебабы в городе. Свежие ингредиенты, быстрое обслуживание.", cuisines:["Турецкая","Стритфуд"], open:true, phone:"+7 343 200-04-04", fav:false, follow:false, stories:false, hours:{"Ежедневно":"09:00–23:00"}, lat:56.8340, lng:60.6018 },
+  { id:5, name:"Portraits Coffee", cat:"Кафе", icon:"☕", addr:"ул. Красноармейская, 10", rating:4.9, reviews:189, photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600", desc:"Specialty-кофейня с топовыми обжарщиками России. Авторские напитки, тихая атмосфера.", cuisines:["Кофе","Десерты"], open:true, phone:"+7 343 200-05-05", fav:true, follow:true, stories:true, hours:{"Пн–Пт":"08:00–21:00","Сб–Вс":"09:00–22:00"}, lat:56.8402, lng:60.6168 },
+  { id:6, name:"Ramen Street", cat:"Ресторан", icon:"🍜", addr:"ул. Попова, 3", rating:4.7, reviews:367, photo:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc:"Аутентичный рамен-бар. Бульон варится 12 часов, лапша своя.", cuisines:["Японская","Паназиатская"], open:true, phone:"+7 343 200-06-06", fav:false, follow:false, stories:false, hours:{"Пн–Вс":"12:00–22:00"}, lat:56.8358, lng:60.6052 },
+  { id:7, name:"Pizzeria Moderna", cat:"Пиццерия", icon:"🍕", addr:"пр. Космонавтов, 18", rating:4.5, reviews:523, photo:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600", desc:"Неаполитанская пицца в дровяной печи. Тесто выдерживается 48 часов.", cuisines:["Итальянская"], open:true, phone:"+7 343 200-07-07", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8448, lng:60.6195 },
+  { id:8, name:"Green Spot", cat:"Веганское", icon:"🥗", addr:"ул. Тургенева, 22", rating:4.6, reviews:145, photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc:"Веганское и вегетарианское кафе. Сезонное меню, суперфуды.", cuisines:["Веганское","ЗОЖ"], open:false, phone:"+7 343 200-08-08", fav:false, follow:false, stories:false, hours:{"Пн–Пт":"09:00–21:00","Сб":"10:00–20:00","Вс":"Закрыто"}, lat:56.8388, lng:60.6125 },
+  { id:9, name:"Пельмени Club", cat:"Кафе", icon:"🥟", addr:"ул. Жукова, 5", rating:4.3, reviews:678, photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=600", desc:"Уральские пельмени ручной лепки 12 видов. Народное заведение с 20-летней историей.", cuisines:["Русская","Уральская"], open:true, phone:"+7 343 200-09-09", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–22:00"}, lat:56.8325, lng:60.5978 },
+  { id:10, name:"Sushi Moto", cat:"Суши", icon:"🍣", addr:"ул. Декабристов, 32", rating:4.5, reviews:290, photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc:"Суши-бар с доставкой и залом. Свежая рыба, умелые мастера.", cuisines:["Японская","Суши"], open:true, phone:"+7 343 200-10-10", fav:false, follow:false, stories:true, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8420, lng:60.6048 },
 ];
 
 const REVIEWS = {
-  1: [{name:"Алексей К.", rating:5, text:"Невероятная кухня, всё очень свежее и вкусно. Особенно понравилась утиная грудка!", date:"10 мар"},{name:"Мария П.", rating:5, text:"Отличное место для романтического ужина. Интерьер шикарный, персонал внимательный.", date:"15 мар"},{name:"Дмитрий В.", rating:4, text:"Хорошая кухня, но цены кусаются. Впрочем для такого качества — оправданно.", date:"20 мар"}],
-  5: [{name:"Антон Р.", rating:5, text:"Лучший кофе в Екатеринбурге, без вариантов. Бариста знает своё дело.", date:"18 мар"}],
-  2: [{name:"Елена С.", rating:5, text:"Любимое место! Порции огромные, цены разумные. Борщ — лучший в городе.", date:"12 мар"}],
+  1:[{name:"Алексей К.",rating:5,text:"Невероятная кухня, всё очень свежее и вкусно!",date:"10 мар"},{name:"Мария П.",rating:5,text:"Отличное место для романтического ужина. Интерьер шикарный.",date:"15 мар"},{name:"Дмитрий В.",rating:4,text:"Хорошая кухня, но цены кусаются. Впрочем оправданно.",date:"20 мар"}],
+  5:[{name:"Антон Р.",rating:5,text:"Лучший кофе в Екатеринбурге, без вариантов.",date:"18 мар"}],
+  2:[{name:"Елена С.",rating:5,text:"Любимое место! Порции огромные, цены разумные.",date:"12 мар"}],
 };
 
 const CATS = ["Все","Кафе","Ресторан","Пиццерия","Суши","Фастфуд","Веганское"];
+
+// ── State ─────────────────────────────────────────────────────────────────────
 let currentTab = 'map';
-let selectedMarker = null;
 let openVenueId = null;
 let catalogFilter = 'Все';
 let catalogSearch = '';
 let userReviews = {};
+let checkins = {};
+let isDark = false;
+let leafletMap = null;
+let leafletLayer = null;
+let leafletMarkers = {};
+let selectedMarkerId = null;
 
+// ── Tiles ─────────────────────────────────────────────────────────────────────
+const TILES = {
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attr: '© OpenStreetMap © CARTO'
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attr: '© OpenStreetMap © CARTO'
+  }
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function stars(rating, size=12) {
   let s = '';
-  for(let i=1;i<=5;i++) s += `<svg class="star" viewBox="0 0 24 24" style="width:${size}px;height:${size}px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${i<=Math.round(rating)?'#facc15':'#e5e7eb'}"/></svg>`;
-  return `<span class="stars">${s}</span>`;
+  for(let i=1;i<=5;i++) s+=`<svg style="width:${size}px;height:${size}px" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${i<=Math.round(rating)?'#facc15':'#e5e7eb'}"/></svg>`;
+  return `<span style="display:inline-flex;gap:1px">${s}</span>`;
 }
 
 function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
   const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
+  t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(()=>t.remove(), 2500);
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
-  currentTab = tab;
-  openVenueId = null;
+  currentTab = tab; openVenueId = null;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('tabBar').style.display = 'flex';
   render();
 }
 
 function render() {
   if(openVenueId) { renderVenue(openVenueId); return; }
   const c = document.getElementById('tabContent');
-  if(currentTab==='map') c.innerHTML = renderMap();
-  else if(currentTab==='catalog') c.innerHTML = renderCatalog();
-  else if(currentTab==='favorites') c.innerHTML = renderFavorites();
-  else c.innerHTML = renderProfile();
-  attachEvents();
+  c.style.overflow = currentTab === 'map' ? 'hidden' : 'hidden';
+
+  if(currentTab==='map') {
+    c.innerHTML = `<div class="map-wrap" style="flex:1;overflow:hidden;position:relative">
+      <div class="map-search-bar">
+        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Поиск заведений..." id="mapSearch" oninput="filterMapMarkers(this.value)">
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Тема карты" id="themeBtn">${isDark?'☀️':'🌙'}</button>
+      <button class="my-loc-btn" onclick="goToMyLoc()">
+        <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </button>
+      <div id="leaflet-map"></div>
+    </div>`;
+
+    // init or re-attach map
+    setTimeout(initMap, 50);
+  } else if(currentTab==='catalog') {
+    c.innerHTML = renderCatalog();
+  } else if(currentTab==='favorites') {
+    c.innerHTML = renderFavorites();
+  } else {
+    c.innerHTML = renderProfile();
+  }
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
-function renderMap() {
-  const markers = VENUES.map(v=>`
-    <div class="marker" style="left:${v.mx}%;top:${v.my}%" onclick="selectMarker(${v.id})" title="${v.name}">
-      <div class="marker-dot ${selectedMarker===v.id?'selected':''}">${v.icon}</div>
-      ${v.fav?'<div style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;border:1.5px solid white">♥</div>':''}
-    </div>`).join('');
+function initMap() {
+  const el = document.getElementById('leaflet-map');
+  if(!el) return;
 
-  const sheet = selectedMarker ? (() => {
-    const v = VENUES.find(x=>x.id===selectedMarker);
-    return `<div class="bottom-sheet">
-      <div class="drag-handle"></div>
-      <div style="display:flex;gap:12px">
-        <img src="${v.photo}" style="width:80px;height:80px;border-radius:12px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:15px;color:#111;margin-bottom:3px">${v.name}</div>
-          <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${stars(v.rating)} <span style="font-size:12px;color:#6b7280">${v.rating} (${v.reviews})</span></div>
-          <div style="font-size:12px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.addr}</div>
-          <span class="badge ${v.open?'badge-open':'badge-closed'}" style="margin-top:4px;display:inline-block">● ${v.open?'Открыто':'Закрыто'}</span>
-        </div>
-        <button onclick="closeSheet()" style="background:none;border:none;cursor:pointer;align-self:flex-start;color:#9ca3af;font-size:20px;line-height:1">×</button>
-      </div>
-      <button class="btn-primary" style="margin-top:12px" onclick="openVenue(${v.id})">Открыть заведение</button>
-    </div>`;
-  })() : '';
+  // Fix size
+  el.style.width = '100%';
+  el.style.height = '100%';
+  el.style.position = 'absolute';
+  el.style.inset = '0';
 
-  return `<div class="map-bg" style="height:100%;position:relative">
-    <div class="map-grid"></div>
-    <div class="map-road-h" style="top:30%"></div>
-    <div class="map-road-h" style="top:55%"></div>
-    <div class="map-road-h" style="top:75%"></div>
-    <div class="map-road-v" style="left:35%"></div>
-    <div class="map-road-v" style="left:58%"></div>
-    <div class="map-road-v" style="left:72%"></div>
-    <div class="map-park" style="left:38%;top:35%;width:80px;height:60px"></div>
-    <div class="map-park" style="left:55%;top:22%;width:60px;height:50px"></div>
-    <div class="hint">Екатеринбург · Центр</div>
-    ${markers}
-    <button onclick="toast('Геолокация получена')" style="position:absolute;bottom:${selectedMarker?'200px':'20px'};right:16px;width:40px;height:40px;background:white;border:none;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:15;transition:bottom 0.3s">
-      <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-    </button>
-    ${sheet}
-  </div>`;
+  if(leafletMap) {
+    leafletMap.remove();
+    leafletMap = null;
+  }
+
+  leafletMap = L.map('leaflet-map', {
+    center: [56.8389, 60.6057],
+    zoom: 14,
+    zoomControl: false,
+    attributionControl: true
+  });
+
+  const tile = isDark ? TILES.dark : TILES.light;
+  leafletLayer = L.tileLayer(tile.url, {
+    attribution: tile.attr,
+    maxZoom: 19,
+    subdomains: 'abcd'
+  }).addTo(leafletMap);
+
+  leafletMarkers = {};
+  VENUES.forEach(v => addMarker(v));
+
+  // close sheet on map click
+  leafletMap.on('click', () => {
+    selectedMarkerId = null;
+    document.getElementById('mapSheet')?.remove();
+    updateMarkerStyles();
+  });
 }
 
-function selectMarker(id) { selectedMarker = selectedMarker===id?null:id; render(); }
-function closeSheet() { selectedMarker = null; render(); }
+function addMarker(v) {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="venue-marker${v.id===selectedMarkerId?' selected':''}${v.fav?' fav':''}" id="vm${v.id}">${v.icon}</div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -24]
+  });
+  const marker = L.marker([v.lat, v.lng], { icon }).addTo(leafletMap);
+  marker.on('click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    selectVenueOnMap(v.id);
+  });
+  leafletMarkers[v.id] = marker;
+}
+
+function updateMarkerStyles() {
+  VENUES.forEach(v => {
+    const el = document.getElementById('vm'+v.id);
+    if(!el) return;
+    el.className = `venue-marker${v.id===selectedMarkerId?' selected':''}${v.fav?' fav':''}`;
+  });
+}
+
+function selectVenueOnMap(id) {
+  selectedMarkerId = id;
+  updateMarkerStyles();
+
+  // center map on venue
+  const v = VENUES.find(x=>x.id===id);
+  leafletMap.panTo([v.lat, v.lng], { animate: true, duration: 0.4 });
+
+  // show bottom sheet
+  document.getElementById('mapSheet')?.remove();
+  const wrap = document.querySelector('.map-wrap');
+  if(!wrap) return;
+
+  const sheet = document.createElement('div');
+  sheet.className = 'bottom-sheet';
+  sheet.id = 'mapSheet';
+  sheet.innerHTML = `
+    <div class="drag-handle"></div>
+    <div style="display:flex;gap:12px">
+      <img src="${v.photo}" style="width:80px;height:80px;border-radius:12px;object-fit:cover;flex-shrink:0" onerror="this.style.background='#f3f4f6';this.removeAttribute('src')">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:15px;color:#111;margin-bottom:3px">${v.name}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${stars(v.rating)} <span style="font-size:12px;color:#6b7280">${v.rating} (${v.reviews})</span></div>
+        <div style="font-size:12px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.addr}</div>
+        <span class="badge ${v.open?'badge-open':'badge-closed'}" style="margin-top:4px;display:inline-block">● ${v.open?'Открыто':'Закрыто'}</span>
+      </div>
+      <button onclick="document.getElementById('mapSheet').remove();selectedMarkerId=null;updateMarkerStyles()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:22px;align-self:flex-start;line-height:1">×</button>
+    </div>
+    <button class="btn-primary" style="margin-top:12px" onclick="openVenue(${v.id})">Открыть заведение</button>`;
+  wrap.appendChild(sheet);
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  document.getElementById('themeBtn').textContent = isDark?'☀️':'🌙';
+  if(leafletMap && leafletLayer) {
+    leafletMap.removeLayer(leafletLayer);
+    const tile = isDark ? TILES.dark : TILES.light;
+    leafletLayer = L.tileLayer(tile.url, {
+      attribution: tile.attr, maxZoom: 19, subdomains: 'abcd'
+    }).addTo(leafletMap);
+  }
+}
+
+function goToMyLoc() {
+  if(!leafletMap) return;
+  leafletMap.flyTo([56.8389, 60.6057], 15, { animate: true, duration: 1 });
+  toast('📍 Центр Екатеринбурга');
+}
+
+function filterMapMarkers(query) {
+  if(!leafletMap) return;
+  VENUES.forEach(v => {
+    const marker = leafletMarkers[v.id];
+    if(!marker) return;
+    const match = v.name.toLowerCase().includes(query.toLowerCase()) || v.cat.toLowerCase().includes(query.toLowerCase());
+    if(query === '' || match) {
+      if(!leafletMap.hasLayer(marker)) marker.addTo(leafletMap);
+    } else {
+      if(leafletMap.hasLayer(marker)) leafletMap.removeLayer(marker);
+    }
+  });
+}
 
 // ── Catalog ───────────────────────────────────────────────────────────────────
 function renderCatalog() {
@@ -237,14 +371,13 @@ function renderCatalog() {
   });
   const chips = CATS.map(c=>`<button class="chip ${catalogFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
   const cards = filtered.length ? filtered.map(v=>venueCard(v)).join('') :
-    `<div style="text-align:center;padding:48px 16px"><div style="font-size:48px;margin-bottom:12px">🔍</div><p style="font-weight:600;color:#374151">Ничего не найдено</p><p style="font-size:13px;color:#9ca3af;margin-top:4px">Попробуйте другой запрос</p></div>`;
-
+    `<div style="text-align:center;padding:48px 16px"><div style="font-size:48px;margin-bottom:12px">🔍</div><p style="font-weight:600;color:#374151">Ничего не найдено</p></div>`;
   return `<div style="display:flex;flex-direction:column;height:100%">
     <div style="background:white;padding:16px 16px 12px;border-bottom:1px solid #f3f4f6;flex-shrink:0">
       <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:12px">Каталог</div>
       <div style="display:flex;align-items:center;gap:8px;background:#f3f4f6;border-radius:12px;padding:8px 12px;margin-bottom:10px">
         <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="Найти заведение..." value="${catalogSearch}" oninput="catalogSearch=this.value;render()" style="background:none;border:none;outline:none;flex:1;font-size:14px;padding:0">
+        <input type="text" placeholder="Найти заведение..." value="${catalogSearch}" oninput="catalogSearch=this.value;render()" style="background:none;border:none;outline:none;flex:1;font-size:14px;padding:0;border-radius:0">
         ${catalogSearch?`<button onclick="catalogSearch='';render()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px">×</button>`:''}
       </div>
       <div class="chips-row">${chips}</div>
@@ -255,8 +388,8 @@ function renderCatalog() {
 
 function venueCard(v) {
   return `<div class="venue-card" onclick="openVenue(${v.id})">
-    <img class="venue-img" src="${v.photo}" alt="" onerror="this.outerHTML='<div class=venue-img-placeholder>${v.icon}</div>'">
-    <div style="flex:1;padding:10px 12px 10px 12px;min-width:0;position:relative">
+    <img style="width:96px;height:96px;object-fit:cover;flex-shrink:0" src="${v.photo}" onerror="this.outerHTML='<div style=width:96px;height:96px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0>${v.icon}</div>'">
+    <div style="flex:1;padding:10px 12px;min-width:0;position:relative">
       <button onclick="event.stopPropagation();toggleFav(${v.id})" style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:16px">${v.fav?'❤️':'🤍'}</button>
       <div style="font-weight:600;font-size:13px;color:#111;margin-bottom:2px;padding-right:24px">${v.name}</div>
       <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">${v.cat} · ${v.addr}</div>
@@ -291,7 +424,7 @@ function renderFavorites() {
 function renderProfile() {
   const follows = VENUES.filter(v=>v.follow).length;
   const favs = VENUES.filter(v=>v.fav);
-  return `<div style="overflow-y:auto;height:100%;background:#f9fafb">
+  return `<div style="flex:1;overflow-y:auto;background:#f9fafb">
     <div style="background:white;padding:20px 16px 16px">
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
         <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#4f46e5);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:700;flex-shrink:0">А</div>
@@ -305,15 +438,15 @@ function renderProfile() {
           </div>`).join('')}
       </div>
     </div>
-    ${favs.length ? `<div style="background:white;margin-top:8px;padding:16px">
+    ${favs.length?`<div style="background:white;margin-top:8px;padding:16px">
       <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:12px">Избранные (${favs.length})</div>
       <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">
         ${favs.map(v=>`<div onclick="openVenue(${v.id})" style="flex-shrink:0;width:72px;cursor:pointer">
-          <img src="${v.photo}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;display:block;margin:0 auto" onerror="this.outerHTML='<div style=width:64px;height:64px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto>${v.icon}</div>'">
+          <img src="${v.photo}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;display:block;margin:0 auto" onerror="this.style.background='#f3f4f6'">
           <p style="font-size:10px;color:#6b7280;text-align:center;margin:4px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name}</p>
         </div>`).join('')}
       </div>
-    </div>` : ''}
+    </div>`:''}
     <div style="margin:8px 16px">
       <button onclick="toast('Выход из аккаунта')" style="width:100%;background:white;color:#ef4444;border:1px solid #fca5a5;border-radius:12px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Выйти из аккаунта</button>
     </div>
@@ -322,13 +455,16 @@ function renderProfile() {
 }
 
 // ── Venue Screen ──────────────────────────────────────────────────────────────
-function openVenue(id) { openVenueId=id; selectedMarker=null; renderVenue(id); }
+function openVenue(id) {
+  openVenueId = id;
+  selectedMarkerId = null;
+  document.getElementById('tabBar').style.display = 'none';
+  renderVenue(id);
+}
 
 function renderVenue(id) {
   const v = VENUES.find(x=>x.id===id);
   const revList = [...(REVIEWS[id]||[]), ...(userReviews[id]||[])];
-  const tabBar = document.getElementById('tabBar');
-  tabBar.style.display = 'none';
   const c = document.getElementById('tabContent');
   c.style.overflow = 'hidden';
 
@@ -344,7 +480,7 @@ function renderVenue(id) {
           <div style="width:28px;height:28px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#2563eb">${r.name[0]}</div>
           <span style="font-size:13px;font-weight:600;color:#111">${r.name}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:4px">${stars(r.rating,11)}<span style="font-size:11px;color:#9ca3af">${r.date}</span></div>
+        <div style="display:flex;align-items:center;gap:4px">${stars(r.rating,11)}<span style="font-size:11px;color:#9ca3af;margin-left:4px">${r.date}</span></div>
       </div>
       <p style="font-size:13px;color:#374151;line-height:1.5;margin:0 0 0 36px">${r.text}</p>
     </div>`).join('') :
@@ -352,16 +488,15 @@ function renderVenue(id) {
 
   c.innerHTML = `<div class="venue-screen" id="venueScreen">
     <div class="hero">
-      <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+      <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover">
       <div class="hero-overlay"></div>
       <button onclick="closeVenue()" style="position:absolute;top:12px;left:12px;width:32px;height:32px;background:rgba(0,0,0,0.4);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center">
         <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </button>
-      <button onclick="toggleFav(${v.id})" id="favBtn" style="position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(0,0,0,0.4);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">${v.fav?'❤️':'🤍'}</button>
-      <div class="hero-title">${v.name}</div>
+      <button onclick="toggleFav(${v.id})" style="position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(0,0,0,0.4);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">${v.fav?'❤️':'🤍'}</button>
+      <div style="position:absolute;bottom:16px;left:16px;right:50px;color:white;font-size:20px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.5)">${v.name}</div>
       <div style="position:absolute;bottom:44px;left:16px;display:flex;align-items:center;gap:6px">${stars(v.rating,13)}<span style="color:white;font-size:12px;opacity:0.9">${v.rating} · ${v.reviews} отзывов</span></div>
     </div>
-
     <div style="background:white;padding:14px 16px">
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
         <span class="badge ${v.open?'badge-open':'badge-closed'}">● ${v.open?'Открыто':'Закрыто'}</span>
@@ -369,53 +504,53 @@ function renderVenue(id) {
         ${v.cuisines.map(c=>`<span class="badge" style="background:#f3f4f6;color:#6b7280">${c}</span>`).join('')}
       </div>
       <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${v.addr}</div>
-      <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.79 19.79 19.79 0 01.09 1.18 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.5a16 16 0 006.59 6.59l.87-.87a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.5v1.42z"/></svg>${v.phone}</div>
+      <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.79 19.79 19.79 0 01.09 1.18 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.5a16 16 0 006.59 6.59l.87-.87a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.5v1.42z"/></svg>${v.phone}</div>
       <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div>${hoursHtml}</div></div>
     </div>
-
     <div style="background:white;margin-top:8px;padding:14px 16px">
       <div style="display:flex;justify-content:space-around">
         <div class="action-btn" onclick="showReviewForm(${id})">
           <div class="action-icon"><svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-          <span class="action-label">Отзыв</span>
+          <span style="font-size:10px;color:#6b7280;font-weight:500">Отзыв</span>
         </div>
         <div class="action-btn" onclick="doCheckin(${id})">
-          <div class="action-icon" id="checkinIcon${id}"><svg width="20" height="20" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg></div>
-          <span class="action-label" id="checkinLabel${id}">Чекин</span>
+          <div class="action-icon" id="ci${id}" style="${checkins[id]?'background:#dcfce7':''}">
+            <svg width="20" height="20" fill="none" stroke="${checkins[id]?'#16a34a':'#6b7280'}" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg>
+          </div>
+          <span style="font-size:10px;color:${checkins[id]?'#16a34a':'#6b7280'};font-weight:500">${checkins[id]?'Готово!':'Чекин'}</span>
         </div>
         <div class="action-btn" onclick="toggleFollow(${id})">
-          <div class="action-icon" id="followIcon${id}" style="${v.follow?'background:#eff6ff':''}">${v.follow?`<svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`:`<svg width="20" height="20" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`}</div>
-          <span class="action-label" id="followLabel${id}">${v.follow?'Отписаться':'Подписаться'}</span>
+          <div class="action-icon" style="${v.follow?'background:#eff6ff':''}">
+            <svg width="20" height="20" fill="none" stroke="${v.follow?'#2563eb':'#6b7280'}" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+          <span style="font-size:10px;color:${v.follow?'#2563eb':'#6b7280'};font-weight:500">${v.follow?'Отписаться':'Подписаться'}</span>
         </div>
         <div class="action-btn" onclick="toast('Открываю маршрут...')">
           <div class="action-icon"><svg width="20" height="20" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>
-          <span class="action-label">Маршрут</span>
+          <span style="font-size:10px;color:#6b7280;font-weight:500">Маршрут</span>
         </div>
       </div>
     </div>
-
     ${v.stories?`<div style="background:white;margin-top:8px;padding:14px 16px">
       <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:10px">Сторис</div>
       <div style="display:flex;gap:10px">
-        ${[1,2,3].map(i=>`<div onclick="toast('Просмотр сторис...')" style="cursor:pointer">
+        ${[1,2,3].map(()=>`<div onclick="toast('Просмотр сторис...')" style="cursor:pointer">
           <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366)">
             <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid white">
-              <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+              <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover">
             </div>
           </div>
         </div>`).join('')}
       </div>
     </div>`:''}
-
     ${v.desc?`<div style="background:white;margin-top:8px;padding:14px 16px">
       <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:6px">О заведении</div>
       <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0">${v.desc}</p>
     </div>`:''}
-
-    <div style="background:white;margin-top:8px;padding:14px 16px;margin-bottom:0">
+    <div style="background:white;margin-top:8px;padding:14px 16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-weight:600;font-size:14px;color:#111">Отзывы (${revList.length})</div>
-        <button onclick="showReviewForm(${id})" style="font-size:12px;color:#2563eb;font-weight:600;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px">+ Написать</button>
+        <button onclick="showReviewForm(${id})" style="font-size:12px;color:#2563eb;font-weight:600;background:none;border:none;cursor:pointer">+ Написать</button>
       </div>
       ${reviewsHtml}
     </div>
@@ -434,63 +569,54 @@ function closeVenue() {
 function toggleFav(id) {
   const v = VENUES.find(x=>x.id===id);
   v.fav = !v.fav;
-  toast(v.fav ? '❤️ Добавлено в избранное' : 'Удалено из избранного');
-  if(openVenueId===id) { renderVenue(id); } else { render(); }
+  toast(v.fav?'❤️ Добавлено в избранное':'Удалено из избранного');
+  if(openVenueId===id) renderVenue(id); else render();
 }
 
 function toggleFollow(id) {
   const v = VENUES.find(x=>x.id===id);
   v.follow = !v.follow;
-  toast(v.follow ? '🔔 Подписка оформлена' : 'Подписка отменена');
+  toast(v.follow?'🔔 Подписка оформлена':'Подписка отменена');
   renderVenue(id);
 }
 
-let checkins = {};
 function doCheckin(id) {
   if(checkins[id]) { toast('Вы уже сделали чекин здесь'); return; }
   checkins[id] = true;
-  const icon = document.getElementById('checkinIcon'+id);
-  const label = document.getElementById('checkinLabel'+id);
-  if(icon) icon.style.background = '#dcfce7';
-  if(label) { label.textContent = 'Готово!'; label.style.color = '#16a34a'; }
   toast('✅ Чекин выполнен!');
+  renderVenue(id);
 }
 
 // ── Review Form ───────────────────────────────────────────────────────────────
 let reviewRating = 5;
 function showReviewForm(venueId) {
   reviewRating = 5;
+  document.getElementById('reviewForm')?.remove();
   const form = document.createElement('div');
-  form.className = 'review-form';
-  form.id = 'reviewForm';
-  form.onclick = (e) => { if(e.target===form) form.remove(); };
-  form.innerHTML = `
-    <div class="review-sheet">
-      <div class="drag-handle"></div>
-      <div style="font-weight:700;font-size:16px;color:#111;margin-bottom:16px">Написать отзыв</div>
-      <input type="text" id="reviewName" placeholder="Ваше имя" style="margin-bottom:10px">
-      <div style="display:flex;gap:8px;margin-bottom:12px" id="ratingStars">
-        ${[1,2,3,4,5].map(i=>`<button onclick="setRating(${i})" style="background:none;border:none;cursor:pointer;font-size:28px;padding:0" id="rstar${i}">${i<=5?'⭐':'☆'}</button>`).join('')}
-      </div>
-      <textarea id="reviewText" placeholder="Поделитесь впечатлениями..." rows="3" style="margin-bottom:12px"></textarea>
-      <button class="btn-primary" onclick="submitReview(${venueId})">Опубликовать</button>
-    </div>`;
+  form.className = 'review-form'; form.id = 'reviewForm';
+  form.onclick = e => { if(e.target===form) form.remove(); };
+  form.innerHTML = `<div class="review-sheet">
+    <div class="drag-handle"></div>
+    <div style="font-weight:700;font-size:16px;color:#111;margin-bottom:16px">Написать отзыв</div>
+    <input type="text" id="rName" placeholder="Ваше имя" style="margin-bottom:10px">
+    <div style="display:flex;gap:8px;margin-bottom:12px" id="rStars">
+      ${[1,2,3,4,5].map(i=>`<button onclick="setRating(${i})" style="background:none;border:none;cursor:pointer;font-size:28px;padding:0" id="rs${i}">${i<=5?'⭐':'☆'}</button>`).join('')}
+    </div>
+    <textarea id="rText" placeholder="Поделитесь впечатлениями..." rows="3" style="margin-bottom:12px"></textarea>
+    <button class="btn-primary" onclick="submitReview(${venueId})">Опубликовать</button>
+  </div>`;
   document.body.appendChild(form);
-  updateStars();
 }
 
-function setRating(r) { reviewRating=r; updateStars(); }
-function updateStars() {
-  for(let i=1;i<=5;i++) {
-    const s = document.getElementById('rstar'+i);
-    if(s) s.textContent = i<=reviewRating ? '⭐' : '☆';
-  }
+function setRating(r) {
+  reviewRating = r;
+  for(let i=1;i<=5;i++) { const s=document.getElementById('rs'+i); if(s) s.textContent=i<=r?'⭐':'☆'; }
 }
 
 function submitReview(venueId) {
-  const name = document.getElementById('reviewName').value.trim() || 'Гость';
-  const text = document.getElementById('reviewText').value.trim();
-  if(text.length < 5) { alert('Напишите хотя бы пару слов'); return; }
+  const name = document.getElementById('rName')?.value.trim() || 'Гость';
+  const text = document.getElementById('rText')?.value.trim();
+  if(!text || text.length < 5) { toast('Напишите хотя бы пару слов'); return; }
   if(!userReviews[venueId]) userReviews[venueId] = [];
   userReviews[venueId].unshift({ name, rating: reviewRating, text, date: 'только что' });
   document.getElementById('reviewForm')?.remove();
@@ -498,10 +624,7 @@ function submitReview(venueId) {
   if(openVenueId===venueId) renderVenue(venueId);
 }
 
-function attachEvents() {}
-
 // ── Init ──────────────────────────────────────────────────────────────────────
-// Show desktop label on wide screens
 if(window.innerWidth >= 900) document.getElementById('desktopLabel').style.display='block';
 render();
 </script>

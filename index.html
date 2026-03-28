@@ -185,7 +185,7 @@ let catalogFilter = 'Все';
 let catalogSearch = '';
 let userReviews = {};
 let checkins = {};
-let isDark = false;
+let isDark = false; // false = светлая OSM, true = тёмная Stadia
 let leafletMap = null;
 let leafletLayer = null;
 let leafletMarkers = {};
@@ -194,12 +194,12 @@ let selectedMarkerId = null;
 // ── Tiles ─────────────────────────────────────────────────────────────────────
 const TILES = {
   light: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attr: '© OpenStreetMap © CARTO'
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '© OpenStreetMap contributors'
   },
   dark: {
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attr: '© OpenStreetMap © CARTO'
+    url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+    attr: '© Stadia Maps © OpenStreetMap'
   }
 };
 
@@ -286,13 +286,10 @@ function initMap() {
   const tile = isDark ? TILES.dark : TILES.light;
   leafletLayer = L.tileLayer(tile.url, {
     attribution: tile.attr,
-    maxZoom: 19,
-    subdomains: 'abcd',
-    detectRetina: false,
+    maxZoom: 20,
     tileSize: 256,
-    updateWhenIdle: false,
-    updateWhenZooming: false,
-    keepBuffer: 4
+    keepBuffer: 6,
+    crossOrigin: true
   }).addTo(leafletMap);
 
   leafletMap.invalidateSize(true);

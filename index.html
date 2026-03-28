@@ -128,7 +128,7 @@
         <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Поиск заведений..." id="mapSearch" oninput="filterMapMarkers(this.value)" style="border:none;outline:none;flex:1;font-size:13px;font-family:inherit;background:none">
       </div>
-      <button id="themeBtn" onclick="toggleTheme()" style="position:absolute;top:60px;right:10px;z-index:500;width:36px;height:36px;background:white;border-radius:50%;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:16px">🌙</button>
+      <button id="themeBtn" onclick="nextTileStyle()" title="Сменить стиль карты" style="position:absolute;top:60px;right:10px;z-index:500;width:36px;height:36px;background:white;border-radius:50%;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:16px">🗺️</button>
       <button onclick="goToMyLoc()" style="position:absolute;bottom:16px;right:10px;z-index:500;width:40px;height:40px;background:white;border-radius:50%;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
         <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
       </button>
@@ -185,23 +185,28 @@ let catalogFilter = 'Все';
 let catalogSearch = '';
 let userReviews = {};
 let checkins = {};
-let isDark = false; // false = светлая OSM, true = тёмная Stadia
+let isDark = false;
 let leafletMap = null;
 let leafletLayer = null;
 let leafletMarkers = {};
 let selectedMarkerId = null;
 
 // ── Tiles ─────────────────────────────────────────────────────────────────────
-const TILES = {
-  light: {
-    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attr: '© OpenStreetMap contributors'
-  },
-  dark: {
-    url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-    attr: '© Stadia Maps © OpenStreetMap'
-  }
-};
+const TILE_STYLES = [
+  { id:'standard', label:'Стандарт', emoji:'🗺️',
+    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr:'© OpenStreetMap' },
+  { id:'topo', label:'Рельеф', emoji:'🏔️',
+    url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attr:'© OpenTopoMap', sub:'abc' },
+  { id:'esri', label:'Спутник', emoji:'🛰️',
+    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr:'© Esri' },
+  { id:'esri_street', label:'Городской', emoji:'🏙️',
+    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attr:'© Esri © OpenStreetMap' },
+];
+let currentTileIdx = 0;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function stars(rating, size=12) {
@@ -283,13 +288,13 @@ function initMap() {
     preferCanvas: false
   });
 
-  const tile = isDark ? TILES.dark : TILES.light;
-  leafletLayer = L.tileLayer(tile.url, {
-    attribution: tile.attr,
+  const style = TILE_STYLES[currentTileIdx];
+  leafletLayer = L.tileLayer(style.url, {
+    attribution: style.attr,
     maxZoom: 20,
     tileSize: 256,
     keepBuffer: 6,
-    crossOrigin: true
+    subdomains: style.sub || ''
   }).addTo(leafletMap);
 
   leafletMap.invalidateSize(true);

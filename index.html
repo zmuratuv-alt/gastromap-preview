@@ -1525,9 +1525,8 @@ function openVenueFromFav(id) {
 }
 
 /* ─── Map ────────────────────────────────────────────────────── */
-const MAPTILER_KEY = 'fWQhRRaFikXv2pMjVrjm';
-const DARK_TILE = `https://api.maptiler.com/maps/darkmatter/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`;
-const LIGHT_TILE = `https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`;
+const DARK_TILE = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png';
+const LIGHT_TILE = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png';
 
 function createPin(emoji, selected, fav) {
   const fill = selected ? '#CAFF00' : '#0D0D0D';
@@ -1564,7 +1563,7 @@ function initMap() {
   });
   window._map = map;
 
-  tileLayer = L.tileLayer(DARK_TILE, {
+  tileLayer = L.tileLayer(DARK_TILE, { subdomains: 'abcd',
     attribution: '© MapTiler © OpenStreetMap',
     maxZoom: 19,
     tileSize: 256,
@@ -1626,7 +1625,7 @@ function toggleMapTheme() {
   mapDark = !mapDark;
   if (window._map && tileLayer) {
     window._map.removeLayer(tileLayer);
-    tileLayer = L.tileLayer(mapDark ? DARK_TILE : LIGHT_TILE, {
+    tileLayer = L.tileLayer(mapDark ? DARK_TILE : LIGHT_TILE, { subdomains: 'abcd',
       attribution: '© MapTiler © OpenStreetMap',
       maxZoom: 19,
       tileSize: 256

@@ -876,8 +876,16 @@ textarea.form-input{resize:none;min-height:80px}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 /* Leaflet overrides */
-.leaflet-control-attribution{font-size:8px!important;opacity:0.4;background:transparent!important;color:rgba(255,255,255,0.4)!important}
-.leaflet-control-attribution a{color:rgba(255,255,255,0.4)!important}
+.leaflet-control-attribution{
+  font-size:8px!important;
+  opacity:0.15!important;
+  background:transparent!important;
+  color:rgba(255,255,255,0.3)!important;
+  padding:1px 4px!important;
+  pointer-events:none;
+}
+.leaflet-control-attribution a{color:rgba(255,255,255,0.3)!important}
+.leaflet-control-attribution:hover{opacity:0.4!important}
 .leaflet-tile{image-rendering:auto}
 </style>
 </head>

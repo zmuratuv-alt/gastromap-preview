@@ -4,675 +4,1665 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GastroMap — Превью</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-  body { margin: 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e1b4b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .phone { width: 390px; height: 844px; background: #f9fafb; border-radius: 40px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 12px #1a1a2e; display: flex; flex-direction: column; flex-shrink: 0; }
-  .screen { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-  .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-  .tab-bar { background: white; display: flex; border-top: 1px solid #e5e7eb; flex-shrink: 0; }
-  .tab-btn { flex: 1; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; cursor: pointer; font-size: 10px; font-weight: 500; color: #9ca3af; transition: color 0.2s; }
-  .tab-btn.active { color: #2563eb; }
-  .tab-btn svg { width: 22px; height: 22px; }
-  .stars { display: inline-flex; gap: 1px; }
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --lime: #CAFF00;
+  --black: #0D0D0D;
+  --surface: #1A1A1A;
+  --surface2: #252525;
+  --white: #FFFFFF;
+  --text-secondary: rgba(255,255,255,0.5);
+  --font: 'Space Grotesk', sans-serif;
+}
 
-  /* Map */
-  #leaflet-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; }
-  /* Убираем зазоры между тайлами карты */
-  .leaflet-tile { 
-    border-right: 1px solid transparent !important;
-    image-rendering: auto;
-  }
-  .leaflet-tile-container { 
-    width: 100% !important; 
-  }
-  .leaflet-layer {
-    will-change: auto;
-  }
-  .leaflet-control-zoom { display: none !important; }
-  .leaflet-control-attribution { font-size: 8px !important; opacity: 0.5; }
+/* ─── Reset & Base ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; min-height: 100vh; }
+body {
+  font-family: var(--font);
+  background: #050505;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+input { font-family: var(--font); }
+img { display: block; }
 
-  /* Custom marker */
-  .venue-marker { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); border: 2.5px solid white; cursor: pointer; background: #2563eb; transition: transform 0.15s; }
-  .venue-marker.selected { background: #f97316; transform: scale(1.25); box-shadow: 0 4px 16px rgba(249,115,22,0.5); }
-  .venue-marker.fav::after { content: '♥'; position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; border: 1.5px solid white; }
+/* ─── Desktop hint ──────────────────────────────────────────── */
+.desktop-hint {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 260px;
+}
+@media (min-width: 900px) {
+  .desktop-hint { display: flex; }
+}
+.desktop-hint h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+.desktop-hint h1 span { color: var(--lime); }
+.desktop-hint p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.hint-tag {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid #2A2A2A;
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
 
-  /* Map overlay controls */
-  .map-wrap { position: absolute; inset: 0; }
-  .map-search-bar { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 500; background: white; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
-  .map-search-bar input { border: none; outline: none; flex: 1; font-size: 13px; font-family: inherit; background: none; }
-  .theme-toggle { position: absolute; top: 60px; right: 10px; z-index: 500; width: 36px; height: 36px; background: white; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .my-loc-btn { position: absolute; bottom: 90px; right: 10px; z-index: 500; width: 40px; height: 40px; background: white; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+/* ─── Phone Shell ────────────────────────────────────────────── */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: var(--black);
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 10px #1a1a1a,
+    0 0 0 11px #2a2a2a,
+    0 30px 80px rgba(0,0,0,0.9),
+    0 0 60px rgba(202,255,0,0.05);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+}
 
-  /* Bottom sheet */
-  .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; padding: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 600; animation: slideUp 0.25s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .drag-handle { width: 40px; height: 4px; background: #d1d5db; border-radius: 2px; margin: 0 auto 12px; }
+/* ─── Status Bar ─────────────────────────────────────────────── */
+.status-bar {
+  height: 44px;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.status-time {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.status-icons svg { fill: var(--white); }
 
-  /* Scrollable tabs */
-  .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
-  .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-  .chips-row::-webkit-scrollbar { display: none; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e5e7eb; background: white; color: #374151; white-space: nowrap; transition: all 0.2s; }
-  .chip.active { background: #2563eb; color: white; border-color: #2563eb; }
+/* ─── Screen ─────────────────────────────────────────────────── */
+.screen {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+#tabContent {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
 
-  /* Venue card */
-  .venue-card { background: white; border-radius: 16px; overflow: hidden; display: flex; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); cursor: pointer; transition: box-shadow 0.2s; }
-  .venue-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+/* ─── Tab Panel ──────────────────────────────────────────────── */
+.tab-panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--black);
+  display: none;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-panel::-webkit-scrollbar { display: none; }
+.tab-panel.active { display: flex; }
 
-  /* Venue screen */
-  .venue-screen { position: absolute; inset: 0; background: #f9fafb; z-index: 30; overflow-y: auto; animation: slideIn 0.3s ease; }
-  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-  .hero { position: relative; height: 220px; flex-shrink: 0; }
-  .hero img { width: 100%; height: 100%; object-fit: cover; }
-  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent); }
+/* ─── Tab Bar ────────────────────────────────────────────────── */
+.tab-bar {
+  background: var(--black);
+  border-top: 1px solid #1F1F1F;
+  display: flex;
+  flex-shrink: 0;
+  padding-bottom: 4px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #444;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.tab-btn.active { color: var(--lime); }
+.tab-btn svg { width: 22px; height: 22px; }
 
-  /* Action buttons */
-  .action-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex: 1; }
-  .action-icon { width: 52px; height: 52px; border-radius: 14px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+/* ─── MAP PANEL ──────────────────────────────────────────────── */
+#mapContainer {
+  position: absolute;
+  inset: 0;
+}
+#map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
 
-  /* Misc */
-  .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
-  .badge-open { background: #dcfce7; color: #16a34a; }
-  .badge-closed { background: #fee2e2; color: #dc2626; }
-  .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #6b7280; }
-  .btn-primary { width: 100%; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
-  .btn-primary:hover { background: #1d4ed8; }
-  .review-form { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 700; display: flex; align-items: flex-end; animation: fadeIn 0.2s; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .review-sheet { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
-  input[type=text], textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; resize: none; }
-  input[type=text]:focus, textarea:focus { border-color: #2563eb; }
-  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 10px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; z-index: 800; animation: toastAnim 0.3s ease; white-space: nowrap; pointer-events: none; }
-  @keyframes toastAnim { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+/* Fix tile seams */
+.leaflet-tile {
+  border-right: 1px solid transparent !important;
+  border-bottom: 1px solid transparent !important;
+  image-rendering: auto !important;
+}
+.leaflet-tile-container { width: 100% !important; }
+.leaflet-layer { will-change: auto; }
+.leaflet-control-zoom { display: none !important; }
+.leaflet-control-attribution {
+  font-size: 7px !important;
+  opacity: 0.3 !important;
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.map-search-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 56px;
+  z-index: 500;
+  background: var(--black);
+  border: 1px solid #2A2A2A;
+  border-radius: 3px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.map-search-bar svg { flex-shrink: 0; opacity: 0.5; }
+.map-search-bar input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 13px;
+  font-weight: 400;
+  background: transparent;
+  color: var(--white);
+}
+.map-search-bar input::placeholder { color: var(--text-secondary); }
+
+.map-theme-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 500;
+  width: 36px;
+  height: 36px;
+  background: var(--black);
+  border: 1px solid #2A2A2A;
+  border-radius: 3px;
+  color: var(--white);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
+.map-loc-btn {
+  position: absolute;
+  bottom: 96px;
+  right: 12px;
+  z-index: 500;
+  width: 40px;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid #2A2A2A;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.map-loc-btn svg { width: 20px; height: 20px; }
+
+/* Bottom Sheet */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 600;
+  background: var(--surface);
+  border-top: 1.5px solid #2A2A2A;
+  border-radius: 0;
+  padding: 16px;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.7);
+}
+.bottom-sheet.open { transform: translateY(0); }
+.bottom-sheet-handle {
+  width: 36px;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.bs-inner { display: flex; gap: 12px; align-items: flex-start; }
+.bs-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.bs-info { flex: 1; min-width: 0; }
+.bs-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.3px;
+}
+.bs-cat { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.bs-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.bs-rating { font-size: 12px; color: var(--lime); font-weight: 700; }
+.bs-reviews { font-size: 11px; color: var(--text-secondary); }
+.badge-open {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: rgba(202,255,0,0.12);
+  color: var(--lime);
+  border: 1px solid rgba(202,255,0,0.3);
+}
+.badge-closed {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.07);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.bs-actions { display: flex; gap: 8px; margin-top: 12px; }
+.bs-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--surface2);
+  color: var(--white);
+  transition: background 0.15s;
+}
+.bs-btn.primary {
+  background: var(--lime);
+  color: var(--black);
+}
+.bs-btn:active { opacity: 0.8; }
+
+/* ─── CATALOG PANEL ──────────────────────────────────────────── */
+#catalogPanel {
+  padding: 0;
+}
+.cat-header {
+  padding: 20px 16px 12px;
+  position: sticky;
+  top: 0;
+  background: var(--black);
+  z-index: 10;
+  border-bottom: 1px solid #1a1a1a;
+}
+.cat-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+.cat-title span { color: var(--lime); }
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid #2A2A2A;
+  border-radius: 3px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.search-bar svg { opacity: 0.4; flex-shrink: 0; }
+.search-bar input {
+  border: none;
+  outline: none;
+  background: transparent;
+  flex: 1;
+  font-size: 13px;
+  color: var(--white);
+}
+.search-bar input::placeholder { color: var(--text-secondary); }
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid #2A2A2A;
+  transition: all 0.15s;
+}
+.chip.active {
+  background: var(--lime);
+  color: var(--black);
+  border-color: var(--lime);
+}
+.venue-list { padding: 8px 0 16px; }
+.venue-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid #161616;
+  align-items: flex-start;
+}
+.venue-card:active { background: var(--surface); }
+.venue-card-img {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.venue-card-info { flex: 1; min-width: 0; }
+.venue-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+.venue-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.fav-btn {
+  flex-shrink: 0;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: color 0.15s, transform 0.15s;
+  padding: 0 2px;
+}
+.fav-btn.active { color: var(--lime); }
+.fav-btn:active { transform: scale(1.3); }
+.venue-card-cat {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.venue-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.stars-row { display: flex; align-items: center; gap: 3px; }
+.star { font-size: 11px; color: var(--lime); }
+.star.empty { color: #333; }
+.rating-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+}
+.reviews-cnt {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ─── VENUE DETAIL PANEL ─────────────────────────────────────── */
+#venuePanel {
+  background: var(--black);
+}
+.venue-hero {
+  position: relative;
+  height: 240px;
+  flex-shrink: 0;
+}
+.venue-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.venue-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(13,13,13,0.15) 0%, rgba(13,13,13,0.85) 100%);
+}
+.venue-back-btn {
+  position: absolute;
+  top: 16px;
+  left: 12px;
+  width: 36px;
+  height: 36px;
+  background: rgba(13,13,13,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.venue-hero-title {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+}
+.venue-hero-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+}
+.venue-hero-addr {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+.venue-body { padding: 16px; }
+.venue-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.vbadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 2px;
+  border: 1px solid #2A2A2A;
+  color: var(--text-secondary);
+  background: var(--surface);
+}
+.vbadge.lime {
+  color: var(--lime);
+  border-color: rgba(202,255,0,0.3);
+  background: rgba(202,255,0,0.08);
+}
+.venue-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.vaction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: 3px;
+  background: var(--surface);
+  border: 1px solid #2A2A2A;
+  transition: all 0.15s;
+}
+.vaction svg { width: 22px; height: 22px; }
+.vaction span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.vaction.active-action {
+  background: rgba(202,255,0,0.1);
+  border-color: rgba(202,255,0,0.4);
+}
+.vaction.active-action svg { color: var(--lime); }
+.vaction.active-action span { color: var(--lime); }
+.vaction:active { transform: scale(0.95); }
+
+.venue-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.venue-desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.venue-divider {
+  height: 1px;
+  background: #1F1F1F;
+  margin-bottom: 20px;
+}
+.hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.hours-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.hours-day { color: var(--text-secondary); }
+.hours-val { color: var(--white); font-weight: 600; }
+.phone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.phone-val {
+  font-size: 14px;
+  color: var(--lime);
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* Reviews */
+.review-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.review-item { display: flex; gap: 10px; }
+.review-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.review-content { flex: 1; }
+.review-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+.review-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+.review-stars { display: flex; gap: 2px; margin-bottom: 3px; }
+.btn-lime {
+  width: 100%;
+  padding: 14px;
+  background: var(--lime);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 20px;
+}
+.btn-lime:active { opacity: 0.85; }
+
+/* Review form overlay */
+.review-form-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,13,13,0.95);
+  z-index: 800;
+  display: none;
+  flex-direction: column;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+.review-form-overlay.open { display: flex; }
+.rfo-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+.rfo-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.rfo-stars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.rfo-star {
+  font-size: 28px;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.1s, transform 0.1s;
+}
+.rfo-star.on { color: var(--lime); }
+.rfo-star:active { transform: scale(1.2); }
+.rfo-textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid #2A2A2A;
+  border-radius: 2px;
+  padding: 12px;
+  color: var(--white);
+  font-size: 14px;
+  font-family: var(--font);
+  resize: none;
+  outline: none;
+  margin-bottom: 16px;
+  min-height: 100px;
+}
+.rfo-textarea::placeholder { color: var(--text-secondary); }
+.rfo-row { display: flex; gap: 10px; }
+.btn-outline {
+  flex: 1;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid #2A2A2A;
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-outline:active { background: var(--surface); }
+.rfo-submit {
+  flex: 2;
+  padding: 13px;
+  background: var(--lime);
+  border: none;
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.rfo-submit:active { opacity: 0.85; }
+
+/* ─── FAVORITES PANEL ────────────────────────────────────────── */
+#favPanel { padding: 0; }
+.fav-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.fav-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -1px;
+}
+.fav-title span { color: var(--lime); }
+.fav-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+}
+.fav-empty-big {
+  font-size: 64px;
+  font-weight: 700;
+  color: #1A1A1A;
+  letter-spacing: -3px;
+}
+.fav-empty-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+.fav-list { padding: 0 0 16px; }
+
+/* ─── PROFILE PANEL ──────────────────────────────────────────── */
+#profilePanel { padding: 0; }
+.profile-header {
+  padding: 28px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #1a1a1a;
+}
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--lime) 0%, #8EB800 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 12px;
+  box-shadow: 0 0 0 3px rgba(202,255,0,0.2);
+}
+.profile-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  margin-bottom: 3px;
+}
+.profile-handle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 0 16px;
+  border: 1px solid #1F1F1F;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.stat-cell {
+  padding: 14px 8px;
+  text-align: center;
+  border-right: 1px solid #1F1F1F;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--lime);
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.profile-section {
+  padding: 0 16px;
+  margin-bottom: 20px;
+}
+.profile-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-bottom: 1px solid #1A1A1A;
+  font-size: 14px;
+  color: var(--white);
+}
+.profile-row:last-child { border-bottom: none; }
+.profile-row-right {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-logout {
+  width: calc(100% - 32px);
+  margin: 0 16px 24px;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid rgba(255,59,48,0.4);
+  border-radius: 2px;
+  color: #FF3B30;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-logout:active { background: rgba(255,59,48,0.08); }
+
+/* ─── Toast ──────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--black);
+  border: 1.5px solid var(--lime);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 12px rgba(202,255,0,0.15);
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 </style>
 </head>
 <body>
 
-<!-- Desktop label -->
-<div style="color:rgba(255,255,255,0.7);max-width:220px;margin-right:40px;display:none" id="desktopLabel">
-  <div style="font-size:56px;text-align:center;margin-bottom:16px">📱</div>
-  <h2 style="color:white;font-size:22px;font-weight:700;text-align:center;margin:0 0 8px">GastroMap</h2>
-  <p style="font-size:13px;text-align:center;line-height:1.6;margin:0 0 20px">Превью мобильного приложения для поиска кафе и ресторанов Екатеринбурга</p>
-  <div style="font-size:13px;display:flex;flex-direction:column;gap:8px">
-    <div>✓ Реальная карта OpenStreetMap</div>
-    <div>✓ Тёмная и светлая тема</div>
-    <div>✓ Каталог + поиск</div>
-    <div>✓ Карточки заведений</div>
-    <div>✓ Отзывы + чекины</div>
-  </div>
+<!-- Desktop Hint -->
+<div class="desktop-hint">
+  <div class="hint-tag">Mobile Preview</div>
+  <h1>Gastro<span>Map</span></h1>
+  <p>Откройте любое заведение, добавьте в избранное, переключите тему карты или оставьте отзыв.</p>
+  <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;">
+    Карта: MapTiler Darkmatter<br>
+    Маркеры: SVG пины<br>
+    Данные: 10 заведений Екатеринбурга
+  </p>
 </div>
 
-<div class="phone" id="phone">
-  <!-- Status bar -->
-  <div style="background:white;display:flex;justify-content:space-between;align-items:center;padding:8px 20px;flex-shrink:0;position:relative;z-index:10" id="statusBar">
-    <span style="font-size:12px;font-weight:700;color:#111">9:41</span>
-    <div style="display:flex;align-items:center;gap:6px">
-      <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="#111"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="#111"/><rect x="9" y="1" width="3" height="11" rx="1" fill="#111"/><rect x="13.5" y="3" width="2" height="5" rx="1" fill="#d1d5db"/></svg>
-      <svg width="18" height="12" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="17" height="13" rx="2.5" stroke="#111" stroke-width="1.5" fill="none"/><rect x="18" y="4" width="2" height="6" rx="1" fill="#111"/><rect x="2" y="2.5" width="13" height="9" rx="1.5" fill="#111"/></svg>
+<!-- Phone -->
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <!-- Signal -->
+      <svg width="17" height="12" viewBox="0 0 17 12">
+        <rect x="0" y="7" width="3" height="5" rx="0.5"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="0.5"/>
+        <rect x="9" y="2.5" width="3" height="9.5" rx="0.5"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="0.5"/>
+      </svg>
+      <!-- Wifi -->
+      <svg width="16" height="12" viewBox="0 0 16 12">
+        <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+        <path d="M5.1 7.1a4.1 4.1 0 015.8 0" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M2.3 4.3a7.5 7.5 0 0111.4 0" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M0 1.5a10.8 10.8 0 0116 0" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <!-- Battery -->
+      <svg width="25" height="12" viewBox="0 0 25 12">
+        <rect x="0" y="1" width="21" height="10" rx="2" stroke="white" stroke-width="1.2" fill="none"/>
+        <rect x="22.2" y="3.5" width="2" height="5" rx="1" fill="white" opacity="0.6"/>
+        <rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="white"/>
+      </svg>
     </div>
   </div>
 
   <!-- Screen -->
-  <div class="screen" id="mainScreen" style="position:relative">
-    <div class="tab-content" id="tabContent"></div>
-    <!-- Постоянный контейнер карты — не пересоздаётся при смене табов -->
-    <div id="mapContainer" style="position:absolute;inset:0;bottom:52px;display:none;z-index:1">
-      <div class="map-search-bar" style="position:absolute;top:10px;left:10px;right:10px;z-index:500;background:white;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,0.15)">
-        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="Поиск заведений..." id="mapSearch" oninput="filterMapMarkers(this.value)" style="border:none;outline:none;flex:1;font-size:13px;font-family:inherit;background:none">
+  <div class="screen">
+    <div id="tabContent">
+
+      <!-- MAP PANEL -->
+      <div class="tab-panel active" id="mapPanel">
+        <div id="mapContainer">
+          <!-- Search -->
+          <div class="map-search-bar">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+              <path d="M11 11l3 3" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input type="text" placeholder="Поиск заведений...">
+          </div>
+          <!-- Theme toggle -->
+          <button class="map-theme-btn" id="themeBtn" onclick="toggleMapTheme()">🌙</button>
+          <!-- Geolocation -->
+          <button class="map-loc-btn" onclick="toast('Геолокация...')">
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="4" stroke="#CAFF00" stroke-width="1.8"/>
+              <path d="M10 2V5M10 15v3M2 10h3M15 10h3" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Map -->
+          <div id="map"></div>
+          <!-- Bottom sheet -->
+          <div class="bottom-sheet" id="bottomSheet">
+            <div class="bottom-sheet-handle"></div>
+            <div class="bs-inner">
+              <img class="bs-img" id="bsImg" src="" alt="">
+              <div class="bs-info">
+                <div class="bs-name" id="bsName"></div>
+                <div class="bs-cat" id="bsCat"></div>
+                <div class="bs-row">
+                  <span class="bs-rating" id="bsRating"></span>
+                  <span class="bs-reviews" id="bsReviews"></span>
+                  <span id="bsStatus"></span>
+                </div>
+              </div>
+            </div>
+            <div class="bs-actions">
+              <button class="bs-btn" onclick="openVenueFromMap()">Детали</button>
+              <button class="bs-btn primary" onclick="toast('Маршрут построен!')">Маршрут</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <button id="themeBtn" onclick="nextTileStyle()" title="Сменить стиль карты" style="position:absolute;top:60px;right:10px;z-index:500;width:36px;height:36px;background:white;border-radius:50%;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:16px">🗺️</button>
-      <button onclick="goToMyLoc()" style="position:absolute;bottom:16px;right:10px;z-index:500;width:40px;height:40px;background:white;border-radius:50%;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
-        <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-      </button>
-      <div id="leaflet-map" style="position:absolute;inset:0"></div>
-    </div>
-    <div class="tab-bar" id="tabBar">
-      <button class="tab-btn active" onclick="switchTab('map')" id="tab-map">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+
+      <!-- CATALOG PANEL -->
+      <div class="tab-panel" id="catalogPanel">
+        <div class="cat-header">
+          <div class="cat-title">КАТАЛО<span>Г</span></div>
+          <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+              <path d="M11 11l3 3" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input type="text" id="catSearch" placeholder="Ресторан, кафе, суши..." oninput="filterCatalog()">
+          </div>
+          <div class="chips" id="catChips"></div>
+        </div>
+        <div class="venue-list" id="venueList"></div>
+      </div>
+
+      <!-- VENUE DETAIL PANEL -->
+      <div class="tab-panel" id="venuePanel">
+        <!-- Review form overlay -->
+        <div class="review-form-overlay" id="reviewFormOverlay">
+          <div class="rfo-title">Ваш отзыв</div>
+          <div class="rfo-label">Оценка</div>
+          <div class="rfo-stars" id="rfoStars">
+            <span class="rfo-star" data-v="1" onclick="setReviewStar(1)">★</span>
+            <span class="rfo-star" data-v="2" onclick="setReviewStar(2)">★</span>
+            <span class="rfo-star" data-v="3" onclick="setReviewStar(3)">★</span>
+            <span class="rfo-star" data-v="4" onclick="setReviewStar(4)">★</span>
+            <span class="rfo-star" data-v="5" onclick="setReviewStar(5)">★</span>
+          </div>
+          <div class="rfo-label">Комментарий</div>
+          <textarea class="rfo-textarea" id="rfoText" placeholder="Расскажите о своём опыте..." rows="4"></textarea>
+          <div class="rfo-row">
+            <button class="btn-outline" onclick="closeReviewForm()">Отмена</button>
+            <button class="rfo-submit" onclick="submitReview()">Отправить</button>
+          </div>
+        </div>
+        <!-- Venue content -->
+        <div id="venueContent"></div>
+      </div>
+
+      <!-- FAVORITES PANEL -->
+      <div class="tab-panel" id="favPanel">
+        <div class="fav-header">
+          <div class="fav-title">ИЗБРАН<span>НОЕ</span></div>
+        </div>
+        <div id="favContent"></div>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div class="tab-panel" id="profilePanel">
+        <div class="profile-header">
+          <div class="profile-avatar">А</div>
+          <div class="profile-name">Алексей Коваль</div>
+          <div class="profile-handle">@alexkoval · Екатеринбург</div>
+        </div>
+        <div class="profile-stats">
+          <div class="stat-cell">
+            <div class="stat-num" id="statCheckins">0</div>
+            <div class="stat-label">Чекинов</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num" id="statFavs">0</div>
+            <div class="stat-label">Избранных</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num" id="statReviews">0</div>
+            <div class="stat-label">Отзывов</div>
+          </div>
+        </div>
+        <div class="profile-section">
+          <div class="profile-section-title">Настройки</div>
+          <div class="profile-row">
+            Уведомления
+            <span class="profile-row-right">Вкл
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 8l2 2 4-4" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+          <div class="profile-row">
+            Тёмная тема
+            <span class="profile-row-right" style="color:var(--lime)">Вкл</span>
+          </div>
+          <div class="profile-row">
+            Язык
+            <span class="profile-row-right">Русский</span>
+          </div>
+          <div class="profile-row">
+            Радиус поиска
+            <span class="profile-row-right">2 км</span>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="toast('Выход из аккаунта...')">Выйти</button>
+      </div>
+
+    </div><!-- /tabContent -->
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         Карта
       </button>
-      <button class="tab-btn" onclick="switchTab('catalog')" id="tab-catalog">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <button class="tab-btn" id="tab-catalog" onclick="switchTab('catalog')">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+          <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
         Каталог
       </button>
-      <button class="tab-btn" onclick="switchTab('favorites')" id="tab-favorites">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      <button class="tab-btn" id="tab-favorites" onclick="switchTab('favorites')">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         Избранное
       </button>
-      <button class="tab-btn" onclick="switchTab('profile')" id="tab-profile">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <button class="tab-btn" id="tab-profile" onclick="switchTab('profile')">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
         Профиль
       </button>
     </div>
-  </div>
-</div>
+
+  </div><!-- /screen -->
+</div><!-- /phone -->
+
+<!-- Toast -->
+<div id="toast"></div>
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────────
+/* ─── Data ──────────────────────────────────────────────────── */
 const VENUES = [
-  { id:1, name:"Buzon", cat:"Ресторан", icon:"🍽️", addr:"ул. Малышева, 137", rating:4.8, reviews:312, photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600", desc:"Один из лучших ресторанов Екатеринбурга с авторской кухней. Уютная атмосфера, внимательный персонал и изысканное меню.", cuisines:["Европейская","Авторская"], open:true, phone:"+7 343 200-01-01", fav:true, follow:false, stories:true, hours:{"Пн–Чт":"12:00–00:00","Пт–Сб":"12:00–02:00","Вс":"12:00–23:00"}, lat:56.8385, lng:60.6098 },
-  { id:2, name:"Своя компания", cat:"Кафе", icon:"☕", addr:"пр. Ленина, 50/4", rating:4.6, reviews:856, photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600", desc:"Уральская сеть кафе с домашней атмосферой. Огромное меню, большие порции, демократичные цены.", cuisines:["Русская","Домашняя"], open:true, phone:"+7 343 200-02-02", fav:false, follow:true, stories:false, hours:{"Ежедневно":"10:00–23:00"}, lat:56.8415, lng:60.6142 },
-  { id:3, name:"Хачапури и вино", cat:"Ресторан", icon:"🍷", addr:"ул. Вайнера, 16", rating:4.7, reviews:441, photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600", desc:"Грузинский ресторан с широким выбором вин и традиционными блюдами.", cuisines:["Грузинская"], open:true, phone:"+7 343 200-03-03", fav:false, follow:false, stories:true, hours:{"Пн–Вс":"11:00–01:00"}, lat:56.8371, lng:60.6075 },
-  { id:4, name:"Döner Haus", cat:"Фастфуд", icon:"🍔", addr:"ул. 8 Марта, 46", rating:4.4, reviews:234, photo:"https://images.unsplash.com/photo-1561245926-1f1eca8eb3d3?w=600", desc:"Лучшие кебабы в городе. Свежие ингредиенты, быстрое обслуживание.", cuisines:["Турецкая","Стритфуд"], open:true, phone:"+7 343 200-04-04", fav:false, follow:false, stories:false, hours:{"Ежедневно":"09:00–23:00"}, lat:56.8340, lng:60.6018 },
-  { id:5, name:"Portraits Coffee", cat:"Кафе", icon:"☕", addr:"ул. Красноармейская, 10", rating:4.9, reviews:189, photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600", desc:"Specialty-кофейня с топовыми обжарщиками России. Авторские напитки, тихая атмосфера.", cuisines:["Кофе","Десерты"], open:true, phone:"+7 343 200-05-05", fav:true, follow:true, stories:true, hours:{"Пн–Пт":"08:00–21:00","Сб–Вс":"09:00–22:00"}, lat:56.8402, lng:60.6168 },
-  { id:6, name:"Ramen Street", cat:"Ресторан", icon:"🍜", addr:"ул. Попова, 3", rating:4.7, reviews:367, photo:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc:"Аутентичный рамен-бар. Бульон варится 12 часов, лапша своя.", cuisines:["Японская","Паназиатская"], open:true, phone:"+7 343 200-06-06", fav:false, follow:false, stories:false, hours:{"Пн–Вс":"12:00–22:00"}, lat:56.8358, lng:60.6052 },
-  { id:7, name:"Pizzeria Moderna", cat:"Пиццерия", icon:"🍕", addr:"пр. Космонавтов, 18", rating:4.5, reviews:523, photo:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600", desc:"Неаполитанская пицца в дровяной печи. Тесто выдерживается 48 часов.", cuisines:["Итальянская"], open:true, phone:"+7 343 200-07-07", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8448, lng:60.6195 },
-  { id:8, name:"Green Spot", cat:"Веганское", icon:"🥗", addr:"ул. Тургенева, 22", rating:4.6, reviews:145, photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc:"Веганское и вегетарианское кафе. Сезонное меню, суперфуды.", cuisines:["Веганское","ЗОЖ"], open:false, phone:"+7 343 200-08-08", fav:false, follow:false, stories:false, hours:{"Пн–Пт":"09:00–21:00","Сб":"10:00–20:00","Вс":"Закрыто"}, lat:56.8388, lng:60.6125 },
-  { id:9, name:"Пельмени Club", cat:"Кафе", icon:"🥟", addr:"ул. Жукова, 5", rating:4.3, reviews:678, photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=600", desc:"Уральские пельмени ручной лепки 12 видов. Народное заведение с 20-летней историей.", cuisines:["Русская","Уральская"], open:true, phone:"+7 343 200-09-09", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–22:00"}, lat:56.8325, lng:60.5978 },
-  { id:10, name:"Sushi Moto", cat:"Суши", icon:"🍣", addr:"ул. Декабристов, 32", rating:4.5, reviews:290, photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc:"Суши-бар с доставкой и залом. Свежая рыба, умелые мастера.", cuisines:["Японская","Суши"], open:true, phone:"+7 343 200-10-10", fav:false, follow:false, stories:true, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8420, lng:60.6048 },
+  { id:1, name:"Buzon", cat:"Ресторан", icon:"🍽️", addr:"ул. Малышева, 137", rating:4.8, reviews:312, photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600", desc:"Один из лучших ресторанов Екатеринбурга с авторской кухней.", cuisines:["Европейская","Авторская"], open:true, phone:"+7 343 200-01-01", fav:true, follow:false, stories:true, hours:{"Пн–Чт":"12:00–00:00","Пт–Сб":"12:00–02:00","Вс":"12:00–23:00"}, lat:56.8385, lng:60.6098 },
+  { id:2, name:"Своя компания", cat:"Кафе", icon:"☕", addr:"пр. Ленина, 50/4", rating:4.6, reviews:856, photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600", desc:"Уральская сеть кафе с домашней атмосферой.", cuisines:["Русская","Домашняя"], open:true, phone:"+7 343 200-02-02", fav:false, follow:true, stories:false, hours:{"Ежедневно":"10:00–23:00"}, lat:56.8415, lng:60.6142 },
+  { id:3, name:"Хачапури и вино", cat:"Ресторан", icon:"🍷", addr:"ул. Вайнера, 16", rating:4.7, reviews:441, photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600", desc:"Грузинский ресторан с широким выбором вин.", cuisines:["Грузинская"], open:true, phone:"+7 343 200-03-03", fav:false, follow:false, stories:true, hours:{"Пн–Вс":"11:00–01:00"}, lat:56.8371, lng:60.6075 },
+  { id:4, name:"Döner Haus", cat:"Фастфуд", icon:"🍔", addr:"ул. 8 Марта, 46", rating:4.4, reviews:234, photo:"https://images.unsplash.com/photo-1561245926-1f1eca8eb3d3?w=600", desc:"Лучшие кебабы в городе.", cuisines:["Турецкая","Стритфуд"], open:true, phone:"+7 343 200-04-04", fav:false, follow:false, stories:false, hours:{"Ежедневно":"09:00–23:00"}, lat:56.8340, lng:60.6018 },
+  { id:5, name:"Portraits Coffee", cat:"Кафе", icon:"☕", addr:"ул. Красноармейская, 10", rating:4.9, reviews:189, photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600", desc:"Specialty-кофейня с топовыми обжарщиками России.", cuisines:["Кофе","Десерты"], open:true, phone:"+7 343 200-05-05", fav:true, follow:true, stories:true, hours:{"Пн–Пт":"08:00–21:00","Сб–Вс":"09:00–22:00"}, lat:56.8402, lng:60.6168 },
+  { id:6, name:"Ramen Street", cat:"Ресторан", icon:"🍜", addr:"ул. Попова, 3", rating:4.7, reviews:367, photo:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc:"Аутентичный рамен-бар.", cuisines:["Японская","Паназиатская"], open:true, phone:"+7 343 200-06-06", fav:false, follow:false, stories:false, hours:{"Пн–Вс":"12:00–22:00"}, lat:56.8358, lng:60.6052 },
+  { id:7, name:"Pizzeria Moderna", cat:"Пиццерия", icon:"🍕", addr:"пр. Космонавтов, 18", rating:4.5, reviews:523, photo:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600", desc:"Неаполитанская пицца в дровяной печи.", cuisines:["Итальянская"], open:true, phone:"+7 343 200-07-07", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8448, lng:60.6195 },
+  { id:8, name:"Green Spot", cat:"Веганское", icon:"🥗", addr:"ул. Тургенева, 22", rating:4.6, reviews:145, photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc:"Веганское и вегетарианское кафе.", cuisines:["Веганское","ЗОЖ"], open:false, phone:"+7 343 200-08-08", fav:false, follow:false, stories:false, hours:{"Пн–Пт":"09:00–21:00","Сб":"10:00–20:00","Вс":"Закрыто"}, lat:56.8388, lng:60.6125 },
+  { id:9, name:"Пельмени Club", cat:"Кафе", icon:"🥟", addr:"ул. Жукова, 5", rating:4.3, reviews:678, photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=600", desc:"Уральские пельмени ручной лепки 12 видов.", cuisines:["Русская","Уральская"], open:true, phone:"+7 343 200-09-09", fav:false, follow:false, stories:false, hours:{"Ежедневно":"11:00–22:00"}, lat:56.8325, lng:60.5978 },
+  { id:10, name:"Sushi Moto", cat:"Суши", icon:"🍣", addr:"ул. Декабристов, 32", rating:4.5, reviews:290, photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc:"Суши-бар с доставкой и залом.", cuisines:["Японская","Суши"], open:true, phone:"+7 343 200-10-10", fav:false, follow:false, stories:true, hours:{"Ежедневно":"11:00–23:00"}, lat:56.8420, lng:60.6048 },
 ];
 
-const REVIEWS = {
-  1:[{name:"Алексей К.",rating:5,text:"Невероятная кухня, всё очень свежее и вкусно!",date:"10 мар"},{name:"Мария П.",rating:5,text:"Отличное место для романтического ужина. Интерьер шикарный.",date:"15 мар"},{name:"Дмитрий В.",rating:4,text:"Хорошая кухня, но цены кусаются. Впрочем оправданно.",date:"20 мар"}],
-  5:[{name:"Антон Р.",rating:5,text:"Лучший кофе в Екатеринбурге, без вариантов.",date:"18 мар"}],
-  2:[{name:"Елена С.",rating:5,text:"Любимое место! Порции огромные, цены разумные.",date:"12 мар"}],
-};
-
-const CATS = ["Все","Кафе","Ресторан","Пиццерия","Суши","Фастфуд","Веганское"];
-
-// ── State ─────────────────────────────────────────────────────────────────────
+/* ─── State ─────────────────────────────────────────────────── */
 let currentTab = 'map';
-let openVenueId = null;
-let catalogFilter = 'Все';
-let catalogSearch = '';
-let userReviews = {};
-let checkins = {};
-let isDark = false;
-let leafletMap = null;
-let leafletLayer = null;
-let leafletMarkers = {};
+let currentVenueId = null;
+let mapDark = true;
+let tileLayer = null;
+let markers = {};
 let selectedMarkerId = null;
+let catFilter = 'all';
+let catSearch = '';
+let reviewRating = 5;
+let checkins = 0;
+let reviewsCount = 0;
+let mapInitialized = false;
 
-// ── Tiles ─────────────────────────────────────────────────────────────────────
-const TILE_STYLES = [
-  { id:'standard', label:'Стандарт', emoji:'🗺️',
-    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attr:'© OpenStreetMap' },
-  { id:'topo', label:'Рельеф', emoji:'🏔️',
-    url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    attr:'© OpenTopoMap', sub:'abc' },
-  { id:'esri', label:'Спутник', emoji:'🛰️',
-    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attr:'© Esri' },
-  { id:'esri_street', label:'Городской', emoji:'🏙️',
-    url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    attr:'© Esri © OpenStreetMap' },
-];
-let currentTileIdx = 0;
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function stars(rating, size=12) {
-  let s = '';
-  for(let i=1;i<=5;i++) s+=`<svg style="width:${size}px;height:${size}px" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${i<=Math.round(rating)?'#facc15':'#e5e7eb'}"/></svg>`;
-  return `<span style="display:inline-flex;gap:1px">${s}</span>`;
-}
-
+/* ─── Toast ─────────────────────────────────────────────────── */
+let toastTimer = null;
 function toast(msg) {
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2500);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
+/* ─── Tab switch ─────────────────────────────────────────────── */
 function switchTab(tab) {
-  currentTab = tab; openVenueId = null;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.getElementById('tabBar').style.display = 'flex';
-  // Скрываем карту если переходим на другой таб
-  const mc = document.getElementById('mapContainer');
-  if(tab !== 'map') mc.style.display = 'none';
-  render();
+  // Hide all panels
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  currentTab = tab;
+
+  const panelMap = {
+    map: 'mapPanel',
+    catalog: 'catalogPanel',
+    favorites: 'favPanel',
+    profile: 'profilePanel'
+  };
+  document.getElementById(panelMap[tab]).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (tab === 'map') {
+    setTimeout(() => { if (window._map) window._map.invalidateSize(); }, 100);
+  }
+  if (tab === 'favorites') renderFavPanel();
+  if (tab === 'profile') renderProfileStats();
 }
 
-function render() {
-  if(openVenueId) { renderVenue(openVenueId); return; }
-  const c = document.getElementById('tabContent');
-  c.style.overflow = currentTab === 'map' ? 'hidden' : 'hidden';
+/* ─── Venue Panel ────────────────────────────────────────────── */
+function openVenue(id) {
+  currentVenueId = id;
+  const v = VENUES.find(x => x.id === id);
+  if (!v) return;
 
-  if(currentTab==='map') {
-    c.innerHTML = `<div class="map-wrap" style="flex:1;overflow:hidden;position:relative">
-      <div class="map-search-bar">
-        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="Поиск заведений..." id="mapSearch" oninput="filterMapMarkers(this.value)">
+  // Build stars
+  function starsHtml(r) {
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+      s += `<span class="star${i <= Math.round(r) ? '' : ' empty'}">★</span>`;
+    }
+    return s;
+  }
+
+  // Build hours
+  let hoursHtml = '';
+  for (const [day, time] of Object.entries(v.hours)) {
+    hoursHtml += `<div class="hours-row"><span class="hours-day">${day}</span><span class="hours-val">${time}</span></div>`;
+  }
+
+  // Cuisines badges
+  let cuisineBadges = v.cuisines.map(c => `<span class="vbadge">${c}</span>`).join('');
+
+  // Static mock reviews
+  const mockReviews = [
+    { name: 'Мария С.', text: 'Потрясающая атмосфера, всё очень вкусно!', rating: 5 },
+    { name: 'Игорь П.', text: 'Сервис на высшем уровне, буду возвращаться.', rating: 4 },
+  ];
+  let reviewsHtml = mockReviews.map(r => `
+    <div class="review-item">
+      <div class="review-avatar">${r.name[0]}</div>
+      <div class="review-content">
+        <div class="review-name">${r.name}</div>
+        <div class="review-stars">${starsHtml(r.rating)}</div>
+        <div class="review-text">${r.text}</div>
       </div>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Тема карты" id="themeBtn">${isDark?'☀️':'🌙'}</button>
-      <button class="my-loc-btn" onclick="goToMyLoc()">
-        <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-      </button>
-      <div id="leaflet-map"></div>
-    </div>`;
+    </div>
+  `).join('');
 
-    // Ждём пока контейнер получит реальный размер
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        initMap();
-      });
-    });
-  } else if(currentTab==='catalog') {
-    c.innerHTML = renderCatalog();
-  } else if(currentTab==='favorites') {
-    c.innerHTML = renderFavorites();
-  } else {
-    c.innerHTML = renderProfile();
-  }
+  const content = `
+    <div class="venue-hero">
+      <img class="venue-hero-img" src="${v.photo}" alt="${v.name}">
+      <div class="venue-hero-overlay"></div>
+      <button class="venue-back-btn" onclick="closeVenue()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M11 14L6 9l5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="venue-hero-title">
+        <div class="venue-hero-name">${v.name}</div>
+        <div class="venue-hero-addr">${v.icon} ${v.addr}</div>
+      </div>
+    </div>
+    <div class="venue-body">
+      <div class="venue-badges">
+        <span class="vbadge ${v.open ? 'lime' : ''}">${v.open ? 'Открыто' : 'Закрыто'}</span>
+        <span class="vbadge">${v.cat}</span>
+        ${cuisineBadges}
+        ${v.stories ? '<span class="vbadge lime">Stories</span>' : ''}
+      </div>
+      <div class="venue-actions">
+        <button class="vaction" id="vaction-review" onclick="showReviewForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.6"><path d="M11.048 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Отзыв</span>
+        </button>
+        <button class="vaction" id="vaction-checkin" onclick="doCheckin()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.6"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Чекин</span>
+        </button>
+        <button class="vaction ${v.follow ? 'active-action' : ''}" id="vaction-follow" onclick="toggleFollow()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${v.follow ? '#CAFF00' : 'rgba(255,255,255,0.6)'}" stroke-width="1.6"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Подписка</span>
+        </button>
+        <button class="vaction" onclick="toast('Маршрут построен!')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.6"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Маршрут</span>
+        </button>
+      </div>
+
+      <div class="venue-section-title">О заведении</div>
+      <div class="venue-desc">${v.desc}</div>
+      <div class="venue-divider"></div>
+
+      <div class="venue-section-title">Часы работы</div>
+      <div class="hours-grid">${hoursHtml}</div>
+      <div class="venue-divider"></div>
+
+      <div class="venue-section-title">Контакты</div>
+      <div class="phone-row">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M14.364 12.364l-2.121 2.121a1 1 0 01-1.414 0L8.707 12.364a1 1 0 010-1.414l.707-.707a1 1 0 000-1.414L6.757 6.172a1 1 0 00-1.414 0l-.707.707a1 1 0 01-1.414 0L1.101 4.757a1 1 0 010-1.414L3.222 1.222a2 2 0 012.83 0l8.485 8.485a2 2 0 010 2.828l-.173.173z" stroke="#CAFF00" stroke-width="1.2"/>
+        </svg>
+        <span class="phone-val">${v.phone}</span>
+      </div>
+      <div class="venue-divider"></div>
+
+      <div class="venue-section-title">Отзывы · ${v.reviews}</div>
+      <div class="review-list">${reviewsHtml}</div>
+      <button class="btn-lime" onclick="showReviewForm()">Написать отзыв</button>
+    </div>
+  `;
+
+  document.getElementById('venueContent').innerHTML = content;
+
+  // Show venue panel on top
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('venuePanel').classList.add('active');
+  document.getElementById('venuePanel').scrollTop = 0;
 }
 
-// ── Map ───────────────────────────────────────────────────────────────────────
-function initMap() {
-  const el = document.getElementById('leaflet-map');
-  if(!el) return;
+function closeVenue() {
+  document.getElementById('venuePanel').classList.remove('active');
+  // Return to catalog or map
+  const panelMap = {
+    map: 'mapPanel',
+    catalog: 'catalogPanel',
+    favorites: 'favPanel',
+    profile: 'profilePanel'
+  };
+  document.getElementById(panelMap[currentTab] || 'catalogPanel').classList.add('active');
+}
 
-  if(leafletMap) {
-    leafletMap.remove();
-    leafletMap = null;
+function openVenueFromMap() {
+  const v = VENUES.find(x => x.id === selectedMarkerId);
+  if (!v) return;
+  closeBottomSheet();
+  currentTab = 'map';
+  openVenue(v.id);
+}
+
+/* ─── Fav Toggle ─────────────────────────────────────────────── */
+function toggleFav(id) {
+  const v = VENUES.find(x => x.id === id);
+  if (!v) return;
+  v.fav = !v.fav;
+  toast(v.fav ? `${v.name} добавлен в избранное` : `${v.name} удалён из избранного`);
+  renderCatalog();
+  if (currentTab === 'favorites') renderFavPanel();
+  // Update marker
+  updateMarker(id);
+}
+
+function toggleFollow() {
+  const v = VENUES.find(x => x.id === currentVenueId);
+  if (!v) return;
+  v.follow = !v.follow;
+  const btn = document.getElementById('vaction-follow');
+  if (btn) {
+    btn.classList.toggle('active-action', v.follow);
+    btn.querySelector('svg').setAttribute('stroke', v.follow ? '#CAFF00' : 'rgba(255,255,255,0.6)');
   }
+  toast(v.follow ? 'Подписка оформлена' : 'Подписка отменена');
+}
 
-  leafletMap = L.map('leaflet-map', {
+function doCheckin() {
+  const v = VENUES.find(x => x.id === currentVenueId);
+  if (!v) return;
+  checkins++;
+  toast(`Чекин в ${v.name}!`);
+  const btn = document.getElementById('vaction-checkin');
+  if (btn) {
+    btn.classList.add('active-action');
+    btn.querySelector('svg').setAttribute('stroke', '#CAFF00');
+  }
+  renderProfileStats();
+}
+
+/* ─── Review Form ────────────────────────────────────────────── */
+function showReviewForm() {
+  reviewRating = 5;
+  document.getElementById('rfoText').value = '';
+  setReviewStar(5);
+  document.getElementById('reviewFormOverlay').classList.add('open');
+}
+
+function closeReviewForm() {
+  document.getElementById('reviewFormOverlay').classList.remove('open');
+}
+
+function setReviewStar(v) {
+  reviewRating = v;
+  document.querySelectorAll('.rfo-star').forEach(s => {
+    s.classList.toggle('on', parseInt(s.dataset.v) <= v);
+  });
+}
+
+function submitReview() {
+  const text = document.getElementById('rfoText').value.trim();
+  if (!text) { toast('Напишите текст отзыва'); return; }
+  reviewsCount++;
+  closeReviewForm();
+  toast('Отзыв опубликован!');
+  renderProfileStats();
+}
+
+/* ─── Profile Stats ──────────────────────────────────────────── */
+function renderProfileStats() {
+  const favCount = VENUES.filter(v => v.fav).length;
+  document.getElementById('statCheckins').textContent = checkins;
+  document.getElementById('statFavs').textContent = favCount;
+  document.getElementById('statReviews').textContent = reviewsCount;
+}
+
+/* ─── Catalog ────────────────────────────────────────────────── */
+const CATEGORIES = ['Все', 'Ресторан', 'Кафе', 'Фастфуд', 'Пиццерия', 'Суши', 'Веганское'];
+
+function renderChips() {
+  const wrap = document.getElementById('catChips');
+  wrap.innerHTML = CATEGORIES.map(c => {
+    const val = c === 'Все' ? 'all' : c;
+    return `<button class="chip${catFilter === val ? ' active' : ''}" onclick="setCatFilter('${val}')">${c}</button>`;
+  }).join('');
+}
+
+function setCatFilter(val) {
+  catFilter = val;
+  renderChips();
+  renderCatalog();
+}
+
+function filterCatalog() {
+  catSearch = document.getElementById('catSearch').value.toLowerCase();
+  renderCatalog();
+}
+
+function starsHtml(r) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) {
+    s += `<span class="star${i <= Math.round(r) ? '' : ' empty'}">★</span>`;
+  }
+  return s;
+}
+
+function renderCatalog() {
+  let list = VENUES.filter(v => {
+    if (catFilter !== 'all' && v.cat !== catFilter) return false;
+    if (catSearch && !v.name.toLowerCase().includes(catSearch) && !v.cat.toLowerCase().includes(catSearch)) return false;
+    return true;
+  });
+
+  const wrap = document.getElementById('venueList');
+  wrap.innerHTML = list.map(v => `
+    <div class="venue-card" onclick="openVenueFromCatalog(${v.id})">
+      <img class="venue-card-img" src="${v.photo}" alt="${v.name}" loading="lazy">
+      <div class="venue-card-info">
+        <div class="venue-card-top">
+          <div class="venue-card-name">${v.name}</div>
+          <button class="fav-btn${v.fav ? ' active' : ''}" onclick="event.stopPropagation(); toggleFav(${v.id})">♥</button>
+        </div>
+        <div class="venue-card-cat">${v.cat} · ${v.addr}</div>
+        <div class="venue-card-row">
+          <div class="stars-row">${starsHtml(v.rating)}</div>
+          <span class="rating-val">${v.rating}</span>
+          <span class="reviews-cnt">(${v.reviews})</span>
+          <span class="${v.open ? 'badge-open' : 'badge-closed'}">${v.open ? 'Открыто' : 'Закрыто'}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openVenueFromCatalog(id) {
+  currentTab = 'catalog';
+  openVenue(id);
+}
+
+/* ─── Favorites ──────────────────────────────────────────────── */
+function renderFavPanel() {
+  const favs = VENUES.filter(v => v.fav);
+  const wrap = document.getElementById('favContent');
+  if (!favs.length) {
+    wrap.innerHTML = `
+      <div class="fav-empty">
+        <div class="fav-empty-big">ПУСТО</div>
+        <div class="fav-empty-sub">Вы ещё не добавили<br>ни одного заведения</div>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="fav-list">${favs.map(v => `
+    <div class="venue-card" onclick="openVenueFromFav(${v.id})">
+      <img class="venue-card-img" src="${v.photo}" alt="${v.name}" loading="lazy">
+      <div class="venue-card-info">
+        <div class="venue-card-top">
+          <div class="venue-card-name">${v.name}</div>
+          <button class="fav-btn active" onclick="event.stopPropagation(); toggleFav(${v.id})">♥</button>
+        </div>
+        <div class="venue-card-cat">${v.cat} · ${v.addr}</div>
+        <div class="venue-card-row">
+          <div class="stars-row">${starsHtml(v.rating)}</div>
+          <span class="rating-val">${v.rating}</span>
+          <span class="${v.open ? 'badge-open' : 'badge-closed'}">${v.open ? 'Открыто' : 'Закрыто'}</span>
+        </div>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+function openVenueFromFav(id) {
+  currentTab = 'favorites';
+  openVenue(id);
+}
+
+/* ─── Map ────────────────────────────────────────────────────── */
+const MAPTILER_KEY = 'fWQhRRaFikXv2pMjVrjm';
+const DARK_TILE = `https://api.maptiler.com/maps/darkmatter/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`;
+const LIGHT_TILE = `https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`;
+
+function createPin(emoji, selected, fav) {
+  const fill = selected ? '#CAFF00' : '#0D0D0D';
+  const stroke = selected ? '#0D0D0D' : '#CAFF00';
+  const fav_badge = fav ? `<circle cx="36" cy="8" r="7" fill="#FF3B30"/><text x="36" y="12" text-anchor="middle" font-size="9" fill="white">♥</text>` : '';
+  return L.divIcon({
+    className: '',
+    html: `<svg width="44" height="56" viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));${selected ? 'transform:scale(1.2);transform-origin:center bottom;' : ''}">
+      <path d="M22 2C11 2 2 11 2 22C2 36 22 54 22 54C22 54 42 36 42 22C42 11 33 2 22 2Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
+      <text x="22" y="29" text-anchor="middle" dominant-baseline="middle" font-size="19">${emoji}</text>
+      ${fav_badge}
+    </svg>`,
+    iconSize: [44, 56],
+    iconAnchor: [22, 54],
+    popupAnchor: [0, -56]
+  });
+}
+
+function updateMarker(id) {
+  const v = VENUES.find(x => x.id === id);
+  if (!v || !markers[id]) return;
+  markers[id].setIcon(createPin(v.icon, selectedMarkerId === id, v.fav));
+}
+
+function initMap() {
+  if (mapInitialized) return;
+  mapInitialized = true;
+
+  const map = L.map('map', {
     center: [56.8389, 60.6057],
     zoom: 14,
     zoomControl: false,
-    attributionControl: true,
-    zoomSnap: 1,
-    zoomDelta: 1,
-    preferCanvas: false
+    attributionControl: true
   });
+  window._map = map;
 
-  const style = TILE_STYLES[currentTileIdx];
-  leafletLayer = L.tileLayer(style.url, {
-    attribution: style.attr,
-    maxZoom: 20,
+  tileLayer = L.tileLayer(DARK_TILE, {
+    attribution: '© MapTiler © OpenStreetMap',
+    maxZoom: 19,
     tileSize: 256,
-    keepBuffer: 6,
-    subdomains: style.sub || ''
-  }).addTo(leafletMap);
+    detectRetina: false
+  }).addTo(map);
 
-  leafletMap.invalidateSize(true);
-  leafletLayer.once('load', () => { leafletMap.invalidateSize(true); });
+  // Anti-seam fixes
+  window.addEventListener('resize', () => map.invalidateSize());
+  setTimeout(() => map.invalidateSize(), 200);
+  setTimeout(() => map.invalidateSize(), 500);
+  setTimeout(() => map.invalidateSize(), 1000);
 
-  leafletMarkers = {};
-  VENUES.forEach(v => addMarker(v));
-
-  // close sheet on map click
-  leafletMap.on("click", () => {
-    selectedMarkerId = null;
-    document.getElementById('mapSheet')?.remove();
-    updateMarkerStyles();
-  });
-}
-
-function addMarker(v) {
-  const icon = L.divIcon({
-    className: '',
-    html: `<div class="venue-marker${v.id===selectedMarkerId?' selected':''}${v.fav?' fav':''}" id="vm${v.id}">${v.icon}</div>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -24]
-  });
-  const marker = L.marker([v.lat, v.lng], { icon }).addTo(leafletMap);
-  marker.on('click', (e) => {
-    L.DomEvent.stopPropagation(e);
-    selectVenueOnMap(v.id);
-  });
-  leafletMarkers[v.id] = marker;
-}
-
-function updateMarkerStyles() {
+  // Add markers
   VENUES.forEach(v => {
-    const el = document.getElementById('vm'+v.id);
-    if(!el) return;
-    el.className = `venue-marker${v.id===selectedMarkerId?' selected':''}${v.fav?' fav':''}`;
+    const m = L.marker([v.lat, v.lng], { icon: createPin(v.icon, false, v.fav) }).addTo(map);
+    markers[v.id] = m;
+    m.on('click', () => selectMarker(v.id));
   });
+
+  // Close bottom sheet on map click
+  map.on('click', closeBottomSheet);
 }
 
-function selectVenueOnMap(id) {
+function selectMarker(id) {
+  const prev = selectedMarkerId;
   selectedMarkerId = id;
-  updateMarkerStyles();
 
-  // center map on venue
-  const v = VENUES.find(x=>x.id===id);
-  leafletMap.panTo([v.lat, v.lng], { animate: true, duration: 0.4 });
-
-  // show bottom sheet
-  document.getElementById('mapSheet')?.remove();
-  const wrap = document.getElementById('mapContainer');
-  if(!wrap) return;
-
-  const sheet = document.createElement('div');
-  sheet.className = 'bottom-sheet';
-  sheet.id = 'mapSheet';
-  sheet.innerHTML = `
-    <div class="drag-handle"></div>
-    <div style="display:flex;gap:12px">
-      <img src="${v.photo}" style="width:80px;height:80px;border-radius:12px;object-fit:cover;flex-shrink:0" onerror="this.style.background='#f3f4f6';this.removeAttribute('src')">
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:15px;color:#111;margin-bottom:3px">${v.name}</div>
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${stars(v.rating)} <span style="font-size:12px;color:#6b7280">${v.rating} (${v.reviews})</span></div>
-        <div style="font-size:12px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.addr}</div>
-        <span class="badge ${v.open?'badge-open':'badge-closed'}" style="margin-top:4px;display:inline-block">● ${v.open?'Открыто':'Закрыто'}</span>
-      </div>
-      <button onclick="document.getElementById('mapSheet').remove();selectedMarkerId=null;updateMarkerStyles()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:22px;align-self:flex-start;line-height:1">×</button>
-    </div>
-    <button class="btn-primary" style="margin-top:12px" onclick="openVenue(${v.id})">Открыть заведение</button>`;
-  wrap.appendChild(sheet);
-}
-
-function toggleTheme() {
-  isDark = !isDark;
-  document.getElementById('themeBtn').textContent = isDark?'☀️':'🌙';
-  if(leafletMap && leafletLayer) {
-    leafletMap.removeLayer(leafletLayer);
-    // Force correct size — fixes gray stripes bug
-  setTimeout(() => { leafletMap.invalidateSize(true); }, 100);
-  setTimeout(() => { leafletMap.invalidateSize(true); }, 400);
-
-  const tile = isDark ? TILES.dark : TILES.light;
-    leafletLayer = L.tileLayer(tile.url, {
-      attribution: tile.attr, maxZoom: 19, subdomains: 'abcd'
-    }).addTo(leafletMap);
+  if (prev && markers[prev]) {
+    const pv = VENUES.find(x => x.id === prev);
+    if (pv) markers[prev].setIcon(createPin(pv.icon, false, pv.fav));
   }
+  const v = VENUES.find(x => x.id === id);
+  if (!v || !markers[id]) return;
+  markers[id].setIcon(createPin(v.icon, true, v.fav));
+
+  // Populate bottom sheet
+  document.getElementById('bsImg').src = v.photo;
+  document.getElementById('bsName').textContent = v.name;
+  document.getElementById('bsCat').textContent = `${v.icon} ${v.cat} · ${v.addr}`;
+  document.getElementById('bsRating').textContent = `★ ${v.rating}`;
+  document.getElementById('bsReviews').textContent = `${v.reviews} отзывов`;
+  document.getElementById('bsStatus').innerHTML = `<span class="${v.open ? 'badge-open' : 'badge-closed'}">${v.open ? 'Открыто' : 'Закрыто'}</span>`;
+  document.getElementById('bottomSheet').classList.add('open');
+
+  // Pan to marker
+  window._map.panTo([v.lat, v.lng]);
 }
 
-function goToMyLoc() {
-  if(!leafletMap) return;
-  leafletMap.flyTo([56.8389, 60.6057], 15, { animate: true, duration: 1 });
-  toast('📍 Центр Екатеринбурга');
+function closeBottomSheet() {
+  document.getElementById('bottomSheet').classList.remove('open');
+  if (selectedMarkerId && markers[selectedMarkerId]) {
+    const v = VENUES.find(x => x.id === selectedMarkerId);
+    if (v) markers[selectedMarkerId].setIcon(createPin(v.icon, false, v.fav));
+  }
+  selectedMarkerId = null;
+}
+
+function toggleMapTheme() {
+  mapDark = !mapDark;
+  if (window._map && tileLayer) {
+    window._map.removeLayer(tileLayer);
+    tileLayer = L.tileLayer(mapDark ? DARK_TILE : LIGHT_TILE, {
+      attribution: '© MapTiler © OpenStreetMap',
+      maxZoom: 19,
+      tileSize: 256
+    }).addTo(window._map);
+    tileLayer.bringToBack();
+  }
+  document.getElementById('themeBtn').textContent = mapDark ? '🌙' : '☀️';
 }
 
 function filterMapMarkers(query) {
-  if(!leafletMap) return;
+  const q = query.toLowerCase();
   VENUES.forEach(v => {
-    const marker = leafletMarkers[v.id];
-    if(!marker) return;
-    const match = v.name.toLowerCase().includes(query.toLowerCase()) || v.cat.toLowerCase().includes(query.toLowerCase());
-    if(query === '' || match) {
-      if(!leafletMap.hasLayer(marker)) marker.addTo(leafletMap);
+    if (!markers[v.id]) return;
+    const match = !q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q);
+    if (match) {
+      markers[v.id].addTo(window._map);
     } else {
-      if(leafletMap.hasLayer(marker)) leafletMap.removeLayer(marker);
+      markers[v.id].remove();
     }
   });
 }
 
-// ── Catalog ───────────────────────────────────────────────────────────────────
-function renderCatalog() {
-  const filtered = VENUES.filter(v => {
-    const matchCat = catalogFilter==='Все' || v.cat===catalogFilter;
-    const matchSearch = v.name.toLowerCase().includes(catalogSearch.toLowerCase()) || v.addr.toLowerCase().includes(catalogSearch.toLowerCase());
-    return matchCat && matchSearch;
-  });
-  const chips = CATS.map(c=>`<button class="chip ${catalogFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`).join('');
-  const cards = filtered.length ? filtered.map(v=>venueCard(v)).join('') :
-    `<div style="text-align:center;padding:48px 16px"><div style="font-size:48px;margin-bottom:12px">🔍</div><p style="font-weight:600;color:#374151">Ничего не найдено</p></div>`;
-  return `<div style="display:flex;flex-direction:column;height:100%">
-    <div style="background:white;padding:16px 16px 12px;border-bottom:1px solid #f3f4f6;flex-shrink:0">
-      <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:12px">Каталог</div>
-      <div style="display:flex;align-items:center;gap:8px;background:#f3f4f6;border-radius:12px;padding:8px 12px;margin-bottom:10px">
-        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="Найти заведение..." value="${catalogSearch}" oninput="catalogSearch=this.value;render()" style="background:none;border:none;outline:none;flex:1;font-size:14px;padding:0;border-radius:0">
-        ${catalogSearch?`<button onclick="catalogSearch='';render()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px">×</button>`:''}
-      </div>
-      <div class="chips-row">${chips}</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:12px 16px;background:#f9fafb">${cards}</div>
-  </div>`;
-}
+/* ─── Init ───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  renderChips();
+  renderCatalog();
+  renderFavPanel();
+  renderProfileStats();
+  initMap();
 
-function venueCard(v) {
-  return `<div class="venue-card" onclick="openVenue(${v.id})">
-    <img style="width:96px;height:96px;object-fit:cover;flex-shrink:0" src="${v.photo}" onerror="this.outerHTML='<div style=width:96px;height:96px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0>${v.icon}</div>'">
-    <div style="flex:1;padding:10px 12px;min-width:0;position:relative">
-      <button onclick="event.stopPropagation();toggleFav(${v.id})" style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:16px">${v.fav?'❤️':'🤍'}</button>
-      <div style="font-weight:600;font-size:13px;color:#111;margin-bottom:2px;padding-right:24px">${v.name}</div>
-      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">${v.cat} · ${v.addr}</div>
-      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${stars(v.rating,11)} <span style="font-size:11px;color:#6b7280">${v.rating} (${v.reviews})</span></div>
-      <span class="badge ${v.open?'badge-open':'badge-closed'}" style="font-size:10px">● ${v.open?'Открыто':'Закрыто'}</span>
-    </div>
-  </div>`;
-}
-
-function setFilter(f) { catalogFilter=f; render(); }
-
-// ── Favorites ─────────────────────────────────────────────────────────────────
-function renderFavorites() {
-  const favs = VENUES.filter(v=>v.fav);
-  return `<div style="display:flex;flex-direction:column;height:100%">
-    <div style="background:white;padding:16px;border-bottom:1px solid #f3f4f6;flex-shrink:0">
-      <div style="font-size:18px;font-weight:700;color:#111">Избранное</div>
-      <div style="font-size:12px;color:#9ca3af;margin-top:2px">${favs.length} заведений</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:12px 16px;background:#f9fafb">
-    ${favs.length ? favs.map(v=>venueCard(v)).join('') :
-      `<div style="text-align:center;padding:48px 16px">
-        <div style="font-size:56px;margin-bottom:12px">⭐</div>
-        <p style="font-weight:600;color:#374151;font-size:15px">Нет избранных</p>
-        <p style="font-size:13px;color:#9ca3af;margin-top:4px">Нажмите 🤍 на карточке заведения</p>
-      </div>`}
-    </div>
-  </div>`;
-}
-
-// ── Profile ───────────────────────────────────────────────────────────────────
-function renderProfile() {
-  const follows = VENUES.filter(v=>v.follow).length;
-  const favs = VENUES.filter(v=>v.fav);
-  return `<div style="flex:1;overflow-y:auto;background:#f9fafb">
-    <div style="background:white;padding:20px 16px 16px">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#4f46e5);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:700;flex-shrink:0">А</div>
-        <div><div style="font-weight:700;font-size:16px;color:#111">Алексей</div><div style="font-size:13px;color:#9ca3af;margin-top:2px">+7 343 000-00-00</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        ${[['12','Отзывов'],['34','Чекинов'],[follows,'Подписок']].map(([v,l])=>`
-          <div style="background:#f9fafb;border-radius:12px;padding:12px;text-align:center">
-            <div style="font-size:20px;font-weight:700;color:#2563eb">${v}</div>
-            <div style="font-size:11px;color:#9ca3af;margin-top:2px">${l}</div>
-          </div>`).join('')}
-      </div>
-    </div>
-    ${favs.length?`<div style="background:white;margin-top:8px;padding:16px">
-      <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:12px">Избранные (${favs.length})</div>
-      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">
-        ${favs.map(v=>`<div onclick="openVenue(${v.id})" style="flex-shrink:0;width:72px;cursor:pointer">
-          <img src="${v.photo}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;display:block;margin:0 auto" onerror="this.style.background='#f3f4f6'">
-          <p style="font-size:10px;color:#6b7280;text-align:center;margin:4px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name}</p>
-        </div>`).join('')}
-      </div>
-    </div>`:''}
-    <div style="margin:8px 16px">
-      <button onclick="toast('Выход из аккаунта')" style="width:100%;background:white;color:#ef4444;border:1px solid #fca5a5;border-radius:12px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Выйти из аккаунта</button>
-    </div>
-    <div style="height:16px"></div>
-  </div>`;
-}
-
-// ── Venue Screen ──────────────────────────────────────────────────────────────
-function openVenue(id) {
-  openVenueId = id;
-  selectedMarkerId = null;
-  document.getElementById('tabBar').style.display = 'none';
-  document.getElementById('mapContainer').style.display = 'none';
-  renderVenue(id);
-}
-
-function renderVenue(id) {
-  const v = VENUES.find(x=>x.id===id);
-  const revList = [...(REVIEWS[id]||[]), ...(userReviews[id]||[])];
-  const c = document.getElementById('tabContent');
-  c.style.overflow = 'hidden';
-
-  const hoursHtml = Object.entries(v.hours).map(([d,t])=>`
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-      <span style="color:#9ca3af;width:60px">${d}</span><span style="color:#374151">${t}</span>
-    </div>`).join('');
-
-  const reviewsHtml = revList.length ? revList.map(r=>`
-    <div style="padding:12px 0;border-bottom:1px solid #f3f4f6">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:28px;height:28px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#2563eb">${r.name[0]}</div>
-          <span style="font-size:13px;font-weight:600;color:#111">${r.name}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">${stars(r.rating,11)}<span style="font-size:11px;color:#9ca3af;margin-left:4px">${r.date}</span></div>
-      </div>
-      <p style="font-size:13px;color:#374151;line-height:1.5;margin:0 0 0 36px">${r.text}</p>
-    </div>`).join('') :
-    `<p style="font-size:13px;color:#9ca3af;text-align:center;padding:16px 0">Отзывов пока нет — будьте первым!</p>`;
-
-  c.innerHTML = `<div class="venue-screen" id="venueScreen">
-    <div class="hero">
-      <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover">
-      <div class="hero-overlay"></div>
-      <button onclick="closeVenue()" style="position:absolute;top:12px;left:12px;width:32px;height:32px;background:rgba(0,0,0,0.4);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      </button>
-      <button onclick="toggleFav(${v.id})" style="position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(0,0,0,0.4);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">${v.fav?'❤️':'🤍'}</button>
-      <div style="position:absolute;bottom:16px;left:16px;right:50px;color:white;font-size:20px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.5)">${v.name}</div>
-      <div style="position:absolute;bottom:44px;left:16px;display:flex;align-items:center;gap:6px">${stars(v.rating,13)}<span style="color:white;font-size:12px;opacity:0.9">${v.rating} · ${v.reviews} отзывов</span></div>
-    </div>
-    <div style="background:white;padding:14px 16px">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-        <span class="badge ${v.open?'badge-open':'badge-closed'}">● ${v.open?'Открыто':'Закрыто'}</span>
-        <span class="badge" style="background:#eff6ff;color:#2563eb">${v.cat}</span>
-        ${v.cuisines.map(c=>`<span class="badge" style="background:#f3f4f6;color:#6b7280">${c}</span>`).join('')}
-      </div>
-      <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${v.addr}</div>
-      <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.79 19.79 19.79 0 01.09 1.18 2 2 0 012.07 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.5a16 16 0 006.59 6.59l.87-.87a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.5v1.42z"/></svg>${v.phone}</div>
-      <div class="info-row"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div>${hoursHtml}</div></div>
-    </div>
-    <div style="background:white;margin-top:8px;padding:14px 16px">
-      <div style="display:flex;justify-content:space-around">
-        <div class="action-btn" onclick="showReviewForm(${id})">
-          <div class="action-icon"><svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-          <span style="font-size:10px;color:#6b7280;font-weight:500">Отзыв</span>
-        </div>
-        <div class="action-btn" onclick="doCheckin(${id})">
-          <div class="action-icon" id="ci${id}" style="${checkins[id]?'background:#dcfce7':''}">
-            <svg width="20" height="20" fill="none" stroke="${checkins[id]?'#16a34a':'#6b7280'}" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg>
-          </div>
-          <span style="font-size:10px;color:${checkins[id]?'#16a34a':'#6b7280'};font-weight:500">${checkins[id]?'Готово!':'Чекин'}</span>
-        </div>
-        <div class="action-btn" onclick="toggleFollow(${id})">
-          <div class="action-icon" style="${v.follow?'background:#eff6ff':''}">
-            <svg width="20" height="20" fill="none" stroke="${v.follow?'#2563eb':'#6b7280'}" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-          </div>
-          <span style="font-size:10px;color:${v.follow?'#2563eb':'#6b7280'};font-weight:500">${v.follow?'Отписаться':'Подписаться'}</span>
-        </div>
-        <div class="action-btn" onclick="toast('Открываю маршрут...')">
-          <div class="action-icon"><svg width="20" height="20" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>
-          <span style="font-size:10px;color:#6b7280;font-weight:500">Маршрут</span>
-        </div>
-      </div>
-    </div>
-    ${v.stories?`<div style="background:white;margin-top:8px;padding:14px 16px">
-      <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:10px">Сторис</div>
-      <div style="display:flex;gap:10px">
-        ${[1,2,3].map(()=>`<div onclick="toast('Просмотр сторис...')" style="cursor:pointer">
-          <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366)">
-            <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid white">
-              <img src="${v.photo}" style="width:100%;height:100%;object-fit:cover">
-            </div>
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>`:''}
-    ${v.desc?`<div style="background:white;margin-top:8px;padding:14px 16px">
-      <div style="font-weight:600;font-size:14px;color:#111;margin-bottom:6px">О заведении</div>
-      <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0">${v.desc}</p>
-    </div>`:''}
-    <div style="background:white;margin-top:8px;padding:14px 16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-weight:600;font-size:14px;color:#111">Отзывы (${revList.length})</div>
-        <button onclick="showReviewForm(${id})" style="font-size:12px;color:#2563eb;font-weight:600;background:none;border:none;cursor:pointer">+ Написать</button>
-      </div>
-      ${reviewsHtml}
-    </div>
-    <div style="height:20px;background:#f9fafb"></div>
-  </div>`;
-}
-
-function closeVenue() {
-  openVenueId = null;
-  document.getElementById('tabBar').style.display = 'flex';
-  const c = document.getElementById('tabContent');
-  c.style.overflow = '';
-  render();
-  if(currentTab === 'map') {
-    document.getElementById('mapContainer').style.display = 'block';
-    if(leafletMap) setTimeout(() => leafletMap.invalidateSize(true), 50);
+  // Map search input
+  const mapSearchInput = document.querySelector('.map-search-bar input');
+  if (mapSearchInput) {
+    mapSearchInput.addEventListener('input', e => filterMapMarkers(e.target.value));
   }
-}
-
-function toggleFav(id) {
-  const v = VENUES.find(x=>x.id===id);
-  v.fav = !v.fav;
-  toast(v.fav?'❤️ Добавлено в избранное':'Удалено из избранного');
-  if(openVenueId===id) renderVenue(id); else render();
-}
-
-function toggleFollow(id) {
-  const v = VENUES.find(x=>x.id===id);
-  v.follow = !v.follow;
-  toast(v.follow?'🔔 Подписка оформлена':'Подписка отменена');
-  renderVenue(id);
-}
-
-function doCheckin(id) {
-  if(checkins[id]) { toast('Вы уже сделали чекин здесь'); return; }
-  checkins[id] = true;
-  toast('✅ Чекин выполнен!');
-  renderVenue(id);
-}
-
-// ── Review Form ───────────────────────────────────────────────────────────────
-let reviewRating = 5;
-function showReviewForm(venueId) {
-  reviewRating = 5;
-  document.getElementById('reviewForm')?.remove();
-  const form = document.createElement('div');
-  form.className = 'review-form'; form.id = 'reviewForm';
-  form.onclick = e => { if(e.target===form) form.remove(); };
-  form.innerHTML = `<div class="review-sheet">
-    <div class="drag-handle"></div>
-    <div style="font-weight:700;font-size:16px;color:#111;margin-bottom:16px">Написать отзыв</div>
-    <input type="text" id="rName" placeholder="Ваше имя" style="margin-bottom:10px">
-    <div style="display:flex;gap:8px;margin-bottom:12px" id="rStars">
-      ${[1,2,3,4,5].map(i=>`<button onclick="setRating(${i})" style="background:none;border:none;cursor:pointer;font-size:28px;padding:0" id="rs${i}">${i<=5?'⭐':'☆'}</button>`).join('')}
-    </div>
-    <textarea id="rText" placeholder="Поделитесь впечатлениями..." rows="3" style="margin-bottom:12px"></textarea>
-    <button class="btn-primary" onclick="submitReview(${venueId})">Опубликовать</button>
-  </div>`;
-  document.body.appendChild(form);
-}
-
-function setRating(r) {
-  reviewRating = r;
-  for(let i=1;i<=5;i++) { const s=document.getElementById('rs'+i); if(s) s.textContent=i<=r?'⭐':'☆'; }
-}
-
-function submitReview(venueId) {
-  const name = document.getElementById('rName')?.value.trim() || 'Гость';
-  const text = document.getElementById('rText')?.value.trim();
-  if(!text || text.length < 5) { toast('Напишите хотя бы пару слов'); return; }
-  if(!userReviews[venueId]) userReviews[venueId] = [];
-  userReviews[venueId].unshift({ name, rating: reviewRating, text, date: 'только что' });
-  document.getElementById('reviewForm')?.remove();
-  toast('✅ Отзыв опубликован');
-  if(openVenueId===venueId) renderVenue(venueId);
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-if(window.innerWidth >= 900) document.getElementById('desktopLabel').style.display='block';
-render();
+});
 </script>
 </body>
 </html>

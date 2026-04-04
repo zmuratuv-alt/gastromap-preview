@@ -352,6 +352,13 @@ body {
   box-shadow: 0 0 12px rgba(202,255,0,0.3);
 }
 
+@keyframes btnTap {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+.btn-tap { animation: btnTap 0.18s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+
 @keyframes checkinPop {
   0%   { transform: scale(1); }
   35%  { transform: scale(1.18); }
@@ -1196,6 +1203,20 @@ function showToast(msg) {
     toastHideTimer = setTimeout(() => el.classList.remove('hide'), 300);
   }, 2500);
 }
+
+/* ─── Global tap feedback on venueScreen buttons ────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('venueScreen').addEventListener('pointerdown', function(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    // Не дублируем pop для кнопок с уже своей анимацией
+    if (btn.classList.contains('heart-btn') || btn.id === 'checkinBtn') return;
+    btn.classList.remove('btn-tap');
+    void btn.offsetWidth;
+    btn.classList.add('btn-tap');
+    btn.addEventListener('animationend', () => btn.classList.remove('btn-tap'), { once: true });
+  });
+});
 
 /* ─── Screen switching ───────────────────────────────────── */
 function showScreen(id) {

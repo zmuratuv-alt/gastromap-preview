@@ -1546,7 +1546,7 @@ function openWhoIsHere() {
   listEl.innerHTML = list.map(function(p, idx) {
     const isYou = p.isYou;
     const dataAttr = isYou ? '' : ('data-who="' + p.name + '"');
-    const avatarBg = isYou ? '#1F1F1F' : '#1F1F1F';
+    const avatarBg = isYou ? 'rgba(255,60,172,0.18)' : 'rgba(255,255,255,0.10)';
     const avatarRing = isYou
       ? 'border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(255,60,172,0.2),0 4px 14px rgba(255,60,172,0.3);'
       : 'border:2.5px solid #FF3CAC;box-shadow:0 0 0 1px rgba(255,60,172,0.12),0 4px 12px rgba(255,60,172,0.2);';

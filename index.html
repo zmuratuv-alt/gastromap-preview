@@ -1079,7 +1079,7 @@ body {
         </div>
         <div id="allReviewsScrollList" style="flex:1; overflow-y:auto; padding:0 20px 16px; display:flex; flex-direction:column; gap:10px;"></div>
         <div style="padding:12px 20px 20px; flex-shrink:0; border-top:1px solid rgba(255,255,255,0.06);">
-          <button onclick="closeAllReviews(); openReview();" style="width:100%; padding:14px; background:#CAFF00; color:#000; border:none; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(202,255,0,0.2);">
+          <button onclick="triggerReviewBtnPop(this); setTimeout(()=>{closeAllReviews();openReview();},180);" style="width:100%; padding:14px; background:#CAFF00; color:#000; border:none; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(202,255,0,0.2);">
             <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings:'FILL' 0,'wght' 600,'GRAD' 0,'opsz' 24;">edit_note</span>
             Написать отзыв
           </button>
@@ -1600,6 +1600,13 @@ function venueCall() {
   } else {
     showToast('Номер не указан');
   }
+}
+
+function triggerReviewBtnPop(btn) {
+  btn.classList.remove('checkin-pop');
+  void btn.offsetWidth;
+  btn.classList.add('checkin-pop');
+  btn.addEventListener('animationend', () => btn.classList.remove('checkin-pop'), { once: true });
 }
 
 function doCheckin(btn) {

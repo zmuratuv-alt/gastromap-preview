@@ -404,6 +404,27 @@ body {
   overflow: hidden;
 }
 
+/* ─── MINI PROFILE ─────────────────────────────────── */
+#miniProfileOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 160;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+#miniProfileOverlay.visible { display: flex; }
+.mini-profile-sheet {
+  width: 100%;
+  border-radius: 24px 24px 0 0;
+  background: rgba(10,15,20,0.97);
+  backdrop-filter: blur(48px) saturate(220%);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 0 0 32px;
+  animation: sheetUp 0.38s cubic-bezier(0.32,0.72,0,1) both;
+}
+
 /* ─── TOAST ────────────────────────────────────────────────── */
 @keyframes toastIn {
   0%   { opacity: 0; transform: translateX(-50%) translateY(-32px) scale(0.92); }
@@ -956,6 +977,46 @@ body {
          OVERLAY: REVIEW FORM
     ═══════════════════════════════════════════════════════ -->
     <!-- ═════════════════════════════════════════════════════════
+         OVERLAY: MINI PROFILE
+    ═════════════════════════════════════════════════════════ -->
+    <div id="miniProfileOverlay" onclick="if(event.target===this)closeMiniProfile()">
+      <div class="mini-profile-sheet">
+        <!-- Handle -->
+        <div style="display:flex; justify-content:center; padding:12px 0 0;">
+          <div style="width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px;"></div>
+        </div>
+        <!-- Close -->
+        <div style="display:flex; justify-content:flex-end; padding:8px 16px 0;">
+          <button onclick="closeMiniProfile()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
+          </button>
+        </div>
+        <!-- Avatar + name -->
+        <div style="display:flex; flex-direction:column; align-items:center; padding:12px 20px 24px;">
+          <div id="miniProfileAvatar" style="width:72px; height:72px; border-radius:50%; background:#FF3CAC; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:#fff; margin-bottom:14px; border:3px solid rgba(255,60,172,0.3);"></div>
+          <div id="miniProfileName" style="font-size:20px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif; margin-bottom:6px;"></div>
+          <div id="miniProfileSub" style="font-size:12px; color:rgba(255,255,255,0.4); font-family:'Space Grotesk',sans-serif;"></div>
+        </div>
+        <!-- Stats -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px 20px;">
+          <div style="background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:16px; text-align:center;">
+            <div id="miniProfileCheckins" style="font-size:22px; font-weight:700; color:#FF3CAC; font-family:'Space Grotesk',sans-serif;"></div>
+            <div style="font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:4px;">Чекинов</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:16px; text-align:center;">
+            <div id="miniProfileFavCount" style="font-size:22px; font-weight:700; color:#FF3CAC; font-family:'Space Grotesk',sans-serif;"></div>
+            <div style="font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:4px;">Избранных</div>
+          </div>
+        </div>
+        <!-- Fav venues -->
+        <div style="padding:0 20px;">
+          <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#CAFF00; margin-bottom:12px;">Любимые заведения</div>
+          <div id="miniProfileFavList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+        <!-- ═════════════════════════════════════════════════════════
          OVERLAY: WHO IS HERE SHEET
     ═════════════════════════════════════════════════════════ -->
     <div id="whoIsHereOverlay" onclick="if(event.target===this)closeWhoIsHere()">
@@ -1342,6 +1403,45 @@ function triggerHeartPop(btn) {
   btn.addEventListener('animationend', () => btn.classList.remove('heart-pop'), { once: true });
 }
 
+/* Данные пресетных пользователей для мини-профиля */
+const whoProfiles = {
+  'Алекс Т.': { checkins: 34, favCount: 12, favVenues: ['Buzon', 'Ramen Street', 'Sushi Moto'] },
+  'Мария Р.': { checkins: 18, favCount: 7,  favVenues: ['Portraits Coffee', 'Хачапури и вино', 'Green Spot'] },
+  'Денис В.': { checkins: 51, favCount: 21, favVenues: ['Buzon', 'Pizzeria Moderna', 'Portraits Coffee'] },
+  'Катя М.': { checkins: 9,  favCount: 5,  favVenues: ['Portraits Coffee', 'Green Spot'] },
+  'Юля К.': { checkins: 22, favCount: 9,  favVenues: ['Portraits Coffee', 'Своя компания'] },
+  'Гия Б.': { checkins: 7,  favCount: 3,  favVenues: ['Хачапури и вино'] },
+  'Светлана Н.': { checkins: 44, favCount: 18, favVenues: ['Хачапури и вино', 'Ramen Street', 'Buzon'] },
+  'Олег Д.': { checkins: 15, favCount: 6,  favVenues: ['Хачапури и вино', 'Buzon'] },
+  'Ирина Ф.': { checkins: 28, favCount: 11, favVenues: ['Хачапури и вино', 'Green Spot', 'Sushi Moto'] },
+  'Паша М.': { checkins: 6,  favCount: 2,  favVenues: ['Pizzeria Moderna'] },
+};
+
+function openMiniProfile(name) {
+  const p = whoProfiles[name] || { checkins: Math.floor(Math.random()*30)+1, favCount: Math.floor(Math.random()*10)+1, favVenues: [] };
+  document.getElementById('miniProfileAvatar').textContent = name[0].toUpperCase();
+  document.getElementById('miniProfileName').textContent = name;
+  // время чекина из sheet
+  document.getElementById('miniProfileSub').textContent = 'Член GastroMap';
+  document.getElementById('miniProfileCheckins').textContent = p.checkins;
+  document.getElementById('miniProfileFavCount').textContent = p.favCount;
+  const favList = document.getElementById('miniProfileFavList');
+  if (p.favVenues.length === 0) {
+    favList.innerHTML = `<div style="font-size:13px; color:rgba(255,255,255,0.3);">Пока пусто</div>`;
+  } else {
+    favList.innerHTML = p.favVenues.map(v => `
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+        <span class="material-symbols-outlined" style="font-size:16px; color:#FF3CAC; flex-shrink:0;">favorite</span>
+        <span style="font-size:13px; color:rgba(255,255,255,0.85); font-family:'Space Grotesk',sans-serif;">${v}</span>
+      </div>`).join('');
+  }
+  document.getElementById('miniProfileOverlay').classList.add('visible');
+}
+
+function closeMiniProfile() {
+  document.getElementById('miniProfileOverlay').classList.remove('visible');
+}
+
 function openWhoIsHere() {
   const v = venues.find(x => x.id === currentVenueId);
   if (!v) return;
@@ -1358,13 +1458,13 @@ function openWhoIsHere() {
 
   const listEl = document.getElementById('whoSheetList');
   listEl.innerHTML = list.map(p => `
-    <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; ${p.isYou ? 'border-color:rgba(255,60,172,0.3);' : ''}">
+    <div onclick="${p.isYou ? '' : `openMiniProfile('${p.name}')`}" style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; ${p.isYou ? 'border-color:rgba(255,60,172,0.3);' : 'cursor:pointer; transition:background 0.18s;'}" ${p.isYou ? '' : 'onmouseenter="this.style.background='rgba(255,60,172,0.08)'" onmouseleave="this.style.background='rgba(0,0,0,0.42)'"'}>
       <div style="width:44px; height:44px; border-radius:50%; background:#FF3CAC; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; flex-shrink:0; ${p.isYou ? 'border:2px solid #fff;' : ''}">${p.name[0].toUpperCase()}</div>
       <div style="flex:1;">
         <div style="font-size:14px; font-weight:600; color:${p.isYou ? '#FF3CAC' : '#fff'}; font-family:'Space Grotesk',sans-serif;">${p.name}</div>
         <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; font-family:'Space Grotesk',sans-serif;">${p.time}</div>
       </div>
-      ${p.isYou ? '<span class="material-symbols-outlined" style="font-size:16px; color:#FF3CAC;">check_circle</span>' : '<span class="material-symbols-outlined" style="font-size:16px; color:rgba(255,60,172,0.5);">pin_drop</span>'}
+      ${p.isYou ? '<span class="material-symbols-outlined" style="font-size:16px; color:#FF3CAC;">check_circle</span>' : '<span class="material-symbols-outlined" style="font-size:16px; color:rgba(255,255,255,0.2);">chevron_right</span>'}
     </div>`).join('');
 
   document.getElementById('whoIsHereOverlay').classList.add('visible');

@@ -1457,17 +1457,27 @@ function openWhoIsHere() {
   document.getElementById('whoSheetCount').textContent = list.length;
 
   const listEl = document.getElementById('whoSheetList');
-  listEl.innerHTML = list.map(p => `
-    <div onclick="${p.isYou ? '' : `openMiniProfile('${p.name}')`}" style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; ${p.isYou ? 'border-color:rgba(255,60,172,0.3);' : 'cursor:pointer; transition:background 0.18s;'}" ${p.isYou ? '' : 'onmouseenter="this.style.background='rgba(255,60,172,0.08)'" onmouseleave="this.style.background='rgba(0,0,0,0.42)'"'}>
-      <div style="width:44px; height:44px; border-radius:50%; background:#FF3CAC; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; flex-shrink:0; ${p.isYou ? 'border:2px solid #fff;' : ''}">${p.name[0].toUpperCase()}</div>
-      <div style="flex:1;">
-        <div style="font-size:14px; font-weight:600; color:${p.isYou ? '#FF3CAC' : '#fff'}; font-family:'Space Grotesk',sans-serif;">${p.name}</div>
-        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; font-family:'Space Grotesk',sans-serif;">${p.time}</div>
-      </div>
-      ${p.isYou ? '<span class="material-symbols-outlined" style="font-size:16px; color:#FF3CAC;">check_circle</span>' : '<span class="material-symbols-outlined" style="font-size:16px; color:rgba(255,255,255,0.2);">chevron_right</span>'}
-    </div>`).join('');
+  listEl.innerHTML = list.map(function(p) {
+    const borderStyle = p.isYou ? 'border-color:rgba(255,60,172,0.3);' : 'cursor:pointer;';
+    const avatarBorder = p.isYou ? 'border:2px solid #fff;' : '';
+    const nameColor = p.isYou ? '#FF3CAC' : '#fff';
+    const icon = p.isYou
+      ? '<span class="material-symbols-outlined" style="font-size:16px;color:#FF3CAC;">check_circle</span>'
+      : '<span class="material-symbols-outlined" style="font-size:16px;color:rgba(255,255,255,0.25);">chevron_right</span>';
+    const dataAttr = p.isYou ? '' : ('data-who="' + p.name + '"');
+    return '<div class="who-row" ' + dataAttr + ' style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(0,0,0,0.42);border:1px solid rgba(255,255,255,0.08);border-radius:16px;transition:background 0.18s;' + borderStyle + '">'
+      + '<div style="width:44px;height:44px;border-radius:50%;background:#FF3CAC;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;' + avatarBorder + '">' + p.name[0].toUpperCase() + '</div>'
+      + '<div style="flex:1;">'
+      + '<div style="font-size:14px;font-weight:600;color:' + nameColor + ';font-family:Space Grotesk,sans-serif;">' + p.name + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;font-family:Space Grotesk,sans-serif;">' + p.time + '</div>'
+      + '</div>' + icon + '</div>';
+  }).join('');
+  listEl.onclick = function(e) {
+    const row = e.target.closest('.who-row[data-who]');
+    if (row) openMiniProfile(row.dataset.who);
+  };
 
-  document.getElementById('whoIsHereOverlay').classList.add('visible');
+    document.getElementById('whoIsHereOverlay').classList.add('visible');
 }
 
 function closeWhoIsHere() {

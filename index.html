@@ -66,11 +66,11 @@ body {
 
 /* ─── Glass surfaces ───────────────────────────────────────── */
 .glass {
-  background: rgba(26,26,26,0.85);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 0.5px solid rgba(255,255,255,0.08);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  background: rgba(32,32,32,0.88);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 0.5px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .glass-light {
   background: rgba(26,26,26,0.75);
@@ -509,7 +509,7 @@ body {
       </div>
 
       <!-- Floating glass card -->
-      <div style="margin-top:-60px; margin-left:8px; margin-right:8px; border-radius:32px; background:rgba(18,18,18,0.92); backdrop-filter:blur(32px) saturate(180%); border:0.5px solid rgba(255,255,255,0.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08); padding:24px; position:relative; z-index:10; margin-bottom:20px;">
+      <div style="margin-top:-60px; margin-left:8px; margin-right:8px; border-radius:32px; background:rgba(30,30,30,0.96); backdrop-filter:blur(32px) saturate(200%); border:1px solid rgba(255,255,255,0.13); box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 20px 60px rgba(0,0,0,0.6); padding:24px; position:relative; z-index:10; margin-bottom:20px;">
 
         <!-- Category + name -->
         <div style="margin-bottom:16px;">
@@ -530,20 +530,20 @@ body {
 
         <!-- Menu button -->
         <div style="margin-bottom:20px;">
-          <button id="venueMenuBtn" onclick="" style="width:100%; padding:16px; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
+          <button id="venueMenuBtn" onclick="" style="width:100%; padding:15px; border-radius:20px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; box-shadow:0 8px 24px rgba(202,255,0,0.18);">
             <span class="material-symbols-outlined" style="font-size:20px;">menu_book</span>
             <span id="venueMenuBtnText">Меню</span>
           </button>
         </div>
 
         <!-- Working hours -->
-        <div style="display:flex; align-items:center; gap:8px; padding:14px 16px; border-radius:14px; background:rgba(255,255,255,0.04); border:0.5px solid rgba(255,255,255,0.07); margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:8px; padding:14px 16px; border-radius:14px; background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.12); margin-bottom:20px;">
           <span class="material-symbols-outlined" style="color:#CAFF00; font-size:18px;">schedule</span>
           <span id="venueHoursEl" style="font-size:13px; color:rgba(255,255,255,0.75); font-weight:500;"></span>
         </div>
 
         <!-- Rating block -->
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.03); border:0.5px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.05); border:0.5px solid rgba(255,255,255,0.1);">
           <div>
             <div id="venueRatingBig" style="font-size:44px; font-weight:700; color:#CAFF00; line-height:1;"></div>
             <div id="venueRatingStars" style="display:flex; gap:2px; margin-top:4px;"></div>

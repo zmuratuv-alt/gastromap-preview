@@ -308,6 +308,50 @@ body {
 }
 #reviewOverlay.visible { display: flex; }
 
+/* ─── ALL REVIEWS OVERLAY ──────────────────────────────────── */
+#allReviewsOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 155;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: flex-end;
+}
+#allReviewsOverlay.visible { display: flex; }
+.all-reviews-sheet {
+  width: 100%;
+  height: 85%;
+  border-radius: 24px 24px 0 0;
+  background: rgba(10,15,20,0.96);
+  backdrop-filter: blur(48px) saturate(200%);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp 0.38s cubic-bezier(0.32,0.72,0,1) both;
+  overflow: hidden;
+}
+.all-reviews-filter-chip {
+  height: 34px;
+  border-radius: 17px;
+  padding: 0 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  transition: all 0.18s ease;
+}
+.all-reviews-filter-chip.active {
+  background: #CAFF00;
+  color: #000;
+  border-color: #CAFF00;
+  box-shadow: 0 0 12px rgba(202,255,0,0.3);
+}
+
 /* ─── TOAST ────────────────────────────────────────────────── */
 #toastEl {
   position: absolute;
@@ -582,8 +626,11 @@ body {
 
         <!-- Reviews -->
         <div>
-          <div style="font-size:9px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#CAFF00; margin-bottom:14px; text-shadow:0 1px 6px rgba(0,0,0,0.6);">ОТЗЫВЫ</div>
-          <div id="venueReviewsList" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;"></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <div style="font-size:9px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#CAFF00; text-shadow:0 1px 6px rgba(0,0,0,0.6);">ОТЗЫВЫ</div>
+            <button id="allReviewsBtn" onclick="openAllReviews()" style="background:rgba(202,255,0,0.12); border:1px solid rgba(202,255,0,0.3); border-radius:20px; padding:4px 12px; font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:600; color:#CAFF00; letter-spacing:0.08em; cursor:pointer; transition:all 0.18s;">ВСЕ</button>
+          </div>
+          <div id="venueReviewsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;"></div>
           <button onclick="openReview()" style="width:100%; padding:16px; background:#CAFF00; color:#000; border:none; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s; box-shadow:0 8px 32px rgba(202,255,0,0.2);">
             <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings:'FILL' 0,'wght' 600,'GRAD' 0,'opsz' 24;">edit_note</span>
             Написать отзыв
@@ -828,6 +875,40 @@ body {
     <!-- ═══════════════════════════════════════════════════════
          OVERLAY: REVIEW FORM
     ═══════════════════════════════════════════════════════ -->
+    <!-- ═════════════════════════════════════════════════════════
+         OVERLAY: ALL REVIEWS SHEET
+    ═════════════════════════════════════════════════════════ -->
+    <div id="allReviewsOverlay" onclick="if(event.target===this)closeAllReviews()">
+      <div class="all-reviews-sheet">
+        <div style="display:flex; justify-content:center; padding:12px 0 0;">
+          <div style="width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px;"></div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px 12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif;">Все отзывы</span>
+            <span id="allReviewsCount" style="background:rgba(255,255,255,0.08); border-radius:20px; padding:4px 10px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.4); font-family:'Space Grotesk',sans-serif;"></span>
+          </div>
+          <button onclick="closeAllReviews()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
+          </button>
+        </div>
+        <div id="allReviewsRating" style="margin:0 20px 14px; padding:14px 16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; display:flex; align-items:center; gap:16px;"></div>
+        <div style="display:flex; gap:8px; padding:0 20px 14px; overflow-x:auto; scrollbar-width:none; flex-shrink:0;">
+          <button class="all-reviews-filter-chip active" data-filter="new" onclick="setReviewFilter('new', this)">Новые</button>
+          <button class="all-reviews-filter-chip" data-filter="positive" onclick="setReviewFilter('positive', this)">Положительные</button>
+          <button class="all-reviews-filter-chip" data-filter="negative" onclick="setReviewFilter('negative', this)">Отрицательные</button>
+          <button class="all-reviews-filter-chip" data-filter="all" onclick="setReviewFilter('all', this)">Все</button>
+        </div>
+        <div id="allReviewsScrollList" style="flex:1; overflow-y:auto; padding:0 20px 16px; display:flex; flex-direction:column; gap:10px;"></div>
+        <div style="padding:12px 20px 20px; flex-shrink:0; border-top:1px solid rgba(255,255,255,0.06);">
+          <button onclick="closeAllReviews(); openReview();" style="width:100%; padding:14px; background:#CAFF00; color:#000; border:none; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(202,255,0,0.2);">
+            <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings:'FILL' 0,'wght' 600,'GRAD' 0,'opsz' 24;">edit_note</span>
+            Написать отзыв
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="reviewOverlay" onclick="if(event.target===this)closeReview()">
       <div class="glass" style="width:100%; border-radius:24px; padding:24px; position:relative;">
         <!-- Close -->
@@ -1275,12 +1356,14 @@ function openVenue(id) {
   // Desc
   document.getElementById('venueDescEl').textContent = v.desc;
 
-  // Reviews
+  // Reviews — store venue id for "all reviews" sheet
+  _allReviewsVenueId = id;
   const reviewsList = document.getElementById('venueReviewsList');
+  const previewReviews = v.reviews.slice(0, 3);
   if (v.reviews.length === 0) {
     reviewsList.innerHTML = `<div style="font-size:13px; color:rgba(255,255,255,0.3); text-align:center; padding:16px 0;">Пока нет отзывов. Будьте первым!</div>`;
   } else {
-    reviewsList.innerHTML = v.reviews.map(r => `
+    reviewsList.innerHTML = previewReviews.map(r => `
       <div style="padding:14px 16px; border-radius:16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); box-shadow:0 2px 12px rgba(0,0,0,0.35);">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
           <div style="width:36px; height:36px; border-radius:50%; background:#CAFF00; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#000; flex-shrink:0;">${r.name[0]}</div>
@@ -1454,6 +1537,90 @@ function openReview() {
 
 function closeReview() {
   document.getElementById('reviewOverlay').classList.remove('visible');
+}
+
+/* ─── ALL REVIEWS SHEET ───────────────────────────────────────── */
+let _allReviewsVenueId = null;
+let _allReviewsFilter = 'new';
+
+function openAllReviews() {
+  if (_allReviewsVenueId === null) return;
+  const v = venues.find(x => x.id === _allReviewsVenueId);
+  if (!v) return;
+  // Reset filter to 'new'
+  _allReviewsFilter = 'new';
+  document.querySelectorAll('.all-reviews-filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === 'new');
+  });
+  // Count
+  document.getElementById('allReviewsCount').textContent = v.reviews.length + ' отзывов';
+  // Rating summary
+  renderAllReviewsRating(v);
+  // List
+  renderAllReviewsList(v, 'new');
+  document.getElementById('allReviewsOverlay').classList.add('visible');
+}
+
+function closeAllReviews() {
+  document.getElementById('allReviewsOverlay').classList.remove('visible');
+}
+
+function setReviewFilter(filter, btn) {
+  _allReviewsFilter = filter;
+  document.querySelectorAll('.all-reviews-filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const v = venues.find(x => x.id === _allReviewsVenueId);
+  if (v) renderAllReviewsList(v, filter);
+}
+
+function renderAllReviewsRating(v) {
+  const el = document.getElementById('allReviewsRating');
+  if (!v.reviews.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  const avg = (v.reviews.reduce((s, r) => s + r.stars, 0) / v.reviews.length).toFixed(1);
+  // star bars
+  const counts = [0,0,0,0,0];
+  v.reviews.forEach(r => { if (r.stars >= 1 && r.stars <= 5) counts[r.stars-1]++; });
+  const maxC = Math.max(...counts, 1);
+  el.innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-size:32px; font-weight:700; color:#CAFF00; font-family:'Space Grotesk',sans-serif; line-height:1;">${avg}</div>
+      <div style="display:flex; gap:2px; justify-content:center; margin-top:4px;">${starsHtml(Math.round(parseFloat(avg)), 12)}</div>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+      ${[5,4,3,2,1].map(n => `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:11px; color:rgba(255,255,255,0.5); font-family:'Space Grotesk',sans-serif; width:8px;">${n}</span>
+          <div style="flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+            <div style="height:100%; width:${Math.round(counts[n-1]/maxC*100)}%; background:#CAFF00; border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px; color:rgba(255,255,255,0.35); font-family:'Space Grotesk',sans-serif; width:12px; text-align:right;">${counts[n-1]}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderAllReviewsList(v, filter) {
+  let list = [...v.reviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (filter === 'positive') list = list.filter(r => r.stars >= 4);
+  else if (filter === 'negative') list = list.filter(r => r.stars <= 2);
+  // 'new' and 'all' — already sorted by date
+  const el = document.getElementById('allReviewsScrollList');
+  if (!list.length) {
+    el.innerHTML = `<div style="font-size:13px; color:rgba(255,255,255,0.3); text-align:center; padding:24px 0;">Нет отзывов</div>`;
+    return;
+  }
+  el.innerHTML = list.map(r => `
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); box-shadow:0 2px 12px rgba(0,0,0,0.35);">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <div style="width:36px; height:36px; border-radius:50%; background:#CAFF00; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#000; flex-shrink:0;">${r.name[0]}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px; font-weight:700; color:#CAFF00;">${r.name}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.4);">${r.date}</div>
+        </div>
+        <div style="display:flex; gap:2px;">${starsHtml(r.stars, 10)}</div>
+      </div>
+      <p style="font-size:12px; color:rgba(255,255,255,0.75); line-height:1.55; margin:0;">${r.text}</p>
+    </div>`).join('');
 }
 
 function setReviewStar(n) {

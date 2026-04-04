@@ -355,8 +355,8 @@ body {
 /* ─── TOAST ────────────────────────────────────────────────── */
 #toastEl {
   position: absolute;
-  bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(24px);
+  top: 16px; left: 50%;
+  transform: translateX(-50%) translateY(-16px);
   z-index: 999;
   background: rgba(26,26,26,0.92);
   backdrop-filter: blur(20px);
@@ -1006,15 +1006,11 @@ let mapMarkers = {};
 
 /* ─── Toast ──────────────────────────────────────────────── */
 let toastTimer = null;
-function showToast(msg, type) {
+function showToast(msg) {
   const el = document.getElementById('toastEl');
   el.textContent = msg;
-  el.style.background = type === 'pink'
-    ? '#FF3CAC'
-    : 'rgba(13,13,13,0.95)';
-  el.style.border = type === 'pink'
-    ? '1px solid #FF3CAC'
-    : '1px solid rgba(255,255,255,0.12)';
+  el.style.background = '#FF3CAC';
+  el.style.border = '1px solid #FF3CAC';
   el.style.color = '#fff';
   el.classList.add('show');
   clearTimeout(toastTimer);
@@ -1268,7 +1264,7 @@ function doCheckin(btn) {
     btn.style.border = '1px solid #FF3CAC';
     icon.style.color = '#fff';
     label.style.color = '#fff';
-    showToast('Чекин подтверждён', 'pink');
+    showToast('Чекин подтверждён');
   }
 }
 
@@ -1703,7 +1699,7 @@ function submitReview() {
     }
   }
   closeReview();
-  showToast('Отзыв опубликован', 'pink');
+  showToast('Отзыв опубликован');
 
   // Refresh venue if open
   if (currentVenueId && currentScreen === 'venueScreen') {

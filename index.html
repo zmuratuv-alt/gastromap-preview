@@ -1002,12 +1002,12 @@ function showToast(msg, type) {
   const el = document.getElementById('toastEl');
   el.textContent = msg;
   el.style.background = type === 'pink'
-    ? 'rgba(255,60,172,0.18)'
+    ? '#FF3CAC'
     : 'rgba(13,13,13,0.95)';
   el.style.border = type === 'pink'
-    ? '1px solid rgba(255,60,172,0.55)'
+    ? '1px solid #FF3CAC'
     : '1px solid rgba(255,255,255,0.12)';
-  el.style.color = type === 'pink' ? '#FF3CAC' : '#fff';
+  el.style.color = '#fff';
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);

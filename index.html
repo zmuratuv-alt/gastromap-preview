@@ -1008,6 +1008,13 @@ body {
             <div style="font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:4px;">Избранных</div>
           </div>
         </div>
+        <!-- Subscribe button -->
+        <div style="padding:0 20px 20px;">
+          <button id="miniProfileFollowBtn" onclick="toggleFollow(this)" style="width:100%; padding:14px; background:#CAFF00; color:#000; border:none; border-radius:16px; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span class="material-symbols-outlined" style="font-size:16px; font-variation-settings:'FILL' 0,'wght' 600,'GRAD' 0,'opsz' 24;">person_add</span>
+            Подписаться
+          </button>
+        </div>
         <!-- Fav venues -->
         <div style="padding:0 20px;">
           <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#CAFF00; margin-bottom:12px;">Любимые заведения</div>
@@ -1435,11 +1442,51 @@ function openMiniProfile(name) {
         <span style="font-size:13px; color:rgba(255,255,255,0.85); font-family:'Space Grotesk',sans-serif;">${v}</span>
       </div>`).join('');
   }
+  // Восстанавливаем состояние кнопки подписки
+  const followBtn = document.getElementById('miniProfileFollowBtn');
+  const followIcon = followBtn.querySelector('.material-symbols-outlined');
+  if (followedUsers.has(name)) {
+    followBtn.style.background = 'transparent';
+    followBtn.style.color = '#CAFF00';
+    followBtn.style.border = '1px solid rgba(202,255,0,0.4)';
+    followIcon.textContent = 'person_check';
+    followBtn.childNodes[followBtn.childNodes.length - 1].textContent = ' Вы подписаны';
+  } else {
+    followBtn.style.background = '#CAFF00';
+    followBtn.style.color = '#000';
+    followBtn.style.border = 'none';
+    followIcon.textContent = 'person_add';
+    followBtn.childNodes[followBtn.childNodes.length - 1].textContent = ' Подписаться';
+  }
   document.getElementById('miniProfileOverlay').classList.add('visible');
 }
 
 function closeMiniProfile() {
   document.getElementById('miniProfileOverlay').classList.remove('visible');
+}
+
+const followedUsers = new Set();
+
+function toggleFollow(btn) {
+  const name = document.getElementById('miniProfileName').textContent;
+  const icon = btn.querySelector('.material-symbols-outlined');
+  if (followedUsers.has(name)) {
+    followedUsers.delete(name);
+    btn.style.background = '#CAFF00';
+    btn.style.color = '#000';
+    btn.style.border = 'none';
+    icon.textContent = 'person_add';
+    btn.childNodes[btn.childNodes.length - 1].textContent = ' Подписаться';
+    showToast('Подписка отменена');
+  } else {
+    followedUsers.add(name);
+    btn.style.background = 'transparent';
+    btn.style.color = '#CAFF00';
+    btn.style.border = '1px solid rgba(202,255,0,0.4)';
+    icon.textContent = 'person_check';
+    btn.childNodes[btn.childNodes.length - 1].textContent = ' Вы подписаны';
+    showToast('Подписка оформлена');
+  }
 }
 
 function openWhoIsHere() {

@@ -352,6 +352,33 @@ body {
   box-shadow: 0 0 12px rgba(202,255,0,0.3);
 }
 
+/* ─── WHO IS HERE ─────────────────────────────────────── */
+@keyframes whoIsHereIn {
+  0%   { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(2px)  scale(1.01); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.who-is-here-enter {
+  animation: whoIsHereIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.who-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #FF3CAC;
+  border: 2px solid #0D0D0D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  margin-left: -10px;
+  flex-shrink: 0;
+}
+.who-avatar:first-child { margin-left: 0; }
+
 /* ─── TOAST ────────────────────────────────────────────────── */
 @keyframes toastIn {
   0%   { opacity: 0; transform: translateX(-50%) translateY(-32px) scale(0.92); }
@@ -630,6 +657,17 @@ body {
             <span class="material-symbols-outlined" style="font-size:20px; color:rgba(255,255,255,0.85); transition:color 0.2s;">pin_drop</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5); transition:color 0.2s;">Чекин</span>
           </button>
+        </div>
+
+        <!-- Who's here block -->
+        <div id="whoIsHereBlock" style="display:none; margin-bottom:20px;">
+          <div style="background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px;">
+            <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#CAFF00; margin-bottom:12px;">СЕЙЧАС ЗДЕСЬ</div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div id="whoIsHereAvatars" style="display:flex;"></div>
+              <div id="whoIsHereCount" style="font-size:13px; color:rgba(255,255,255,0.55); font-family:'Space Grotesk',sans-serif;"></div>
+            </div>
+          </div>
         </div>
 
         <!-- About desc -->
@@ -981,16 +1019,16 @@ const memStorage = {
 
 /* ─── Data ───────────────────────────────────────────────── */
 const venues = [
-  { id:1, phone:"+73432101010", name:"Buzon", cat:"Ресторан", cuisine:["Авторская","Мясо"], rating:4.8, check:2200, address:"ул. Ленина, 5", open:true, hours:"12:00–00:00", lat:56.838, lng:60.597, hasStories:true, hasMenu:true, desc:"Авторская кухня от шеф-повара Дмитрия Буй. Уютное пространство с открытой кухней.", photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80", reviews:[{name:"Анна К.",date:"2 мар",stars:5,text:"Невероятная кухня, всё свежее и вкусное!"},{name:"Максим Д.",date:"15 фев",stars:5,text:"Лучший ресторан Екатеринбурга!"}], menu:{cats:["Закуски","Главное","Десерты"],dishes:[{name:"Тартар из говядины",cat:"Закуски",weight:"180г",price:890,photo:"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=80"},{name:"Рибай на углях",cat:"Главное",weight:"320г",price:2400,photo:"https://images.unsplash.com/photo-1558030006-450675393462?w=400&q=80"},{name:"Крем-брюле",cat:"Десерты",weight:"120г",price:450,photo:"https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=400&q=80"}]} },
-  { id:2, phone:"+73432202020", name:"Своя компания", cat:"Кафе", cuisine:["Европейская","Завтраки"], rating:4.6, check:800, address:"пр. Ленина, 25", open:true, hours:"08:00–23:00", lat:56.840, lng:60.601, hasStories:false, hasMenu:true, desc:"Уютное кафе для завтраков и рабочих встреч. Большой выбор кофе.", photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80", reviews:[{name:"Ирина С.",date:"1 апр",stars:4,text:"Хороший кофе, приятная атмосфера."}], menu:{cats:["Завтраки","Напитки"],dishes:[{name:"Авокадо тост",cat:"Завтраки",weight:"220г",price:380,photo:"https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?w=400&q=80"},{name:"Капучино",cat:"Напитки",weight:"300мл",price:220,photo:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80"}]} },
-  { id:3, phone:"+73432303030", name:"Хачапури и вино", cat:"Ресторан", cuisine:["Грузинская","Вино"], rating:4.7, check:1800, address:"ул. Вайнера, 12", open:true, hours:"11:00–01:00", lat:56.835, lng:60.593, hasStories:true, hasMenu:false, desc:"Лучшие хачапури по-аджарски и натуральное вино от сомелье.", photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&q=80", reviews:[{name:"Георгий В.",date:"28 мар",stars:5,text:"Хачапури — лучшие в городе!"}], menu:null },
-  { id:4, phone:"+73432404040", name:"Döner Haus", cat:"Фастфуд", cuisine:["Турецкая","Стритфуд"], rating:4.4, check:450, address:"ул. 8 Марта, 46", open:false, hours:"10:00–22:00", lat:56.843, lng:60.606, hasStories:false, hasMenu:false, desc:"Аутентичные донеры по берлинскому рецепту.", photo:"https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&q=80", reviews:[], menu:null },
-  { id:5, phone:"+73432505050", name:"Portraits Coffee", cat:"Кафе", cuisine:["Specialty","Десерты"], rating:4.9, check:650, address:"ул. Сакко и Ванцетти, 3", open:true, hours:"08:00–22:00", lat:56.837, lng:60.599, hasStories:true, hasMenu:true, desc:"Specialty кофе третьей волны. Каждый напиток — произведение искусства.", photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80", reviews:[{name:"Катя М.",date:"3 апр",stars:5,text:"Лучший флэт уайт в городе!"},{name:"Дима П.",date:"1 апр",stars:5,text:"Атмосфера невероятная."}], menu:{cats:["Кофе","Еда"],dishes:[{name:"Флэт уайт",cat:"Кофе",weight:"200мл",price:280,photo:"https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&q=80"},{name:"Матча латте",cat:"Кофе",weight:"300мл",price:320,photo:"https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80"},{name:"Круассан миндальный",cat:"Еда",weight:"120г",price:290,photo:"https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80"}]} },
-  { id:6, phone:"+73432606060", name:"Ramen Street", cat:"Ресторан", cuisine:["Японская","Рамен"], rating:4.7, check:900, address:"ул. Красноармейская, 10", open:true, hours:"11:00–23:00", lat:56.841, lng:60.594, hasStories:false, hasMenu:false, desc:"Настоящий японский рамен на насыщенном бульоне.", photo:"https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80", reviews:[], menu:null },
-  { id:7, phone:"+73432707070", name:"Pizzeria Moderna", cat:"Пиццерия", cuisine:["Итальянская","Пицца"], rating:4.5, check:750, address:"ул. Малышева, 31", open:true, hours:"11:00–23:00", lat:56.836, lng:60.608, hasStories:false, hasMenu:false, desc:"Неаполитанская пицца в дровяной печи.", photo:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", reviews:[], menu:null },
-  { id:8, phone:"+73432808080", name:"Green Spot", cat:"Веганское", cuisine:["Веганская","Здоровое"], rating:4.6, check:700, address:"ул. Тургенева, 22", open:true, hours:"09:00–21:00", lat:56.839, lng:60.602, hasStories:false, hasMenu:false, desc:"Полностью растительное меню без компромиссов.", photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80", reviews:[], menu:null },
-  { id:9, phone:"+73432909090", name:"Пельмени Club", cat:"Кафе", cuisine:["Русская","Пельмени"], rating:4.3, check:500, address:"ул. Первомайская, 15", open:false, hours:"11:00–22:00", lat:56.834, lng:60.610, hasStories:false, hasMenu:false, desc:"Ручная лепка пельменей при вас.", photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80", reviews:[], menu:null },
-  { id:10, phone:"+73432100100", name:"Sushi Moto", cat:"Суши", cuisine:["Японская","Суши"], rating:4.5, check:1200, address:"ул. Куйбышева, 44", open:true, hours:"12:00–00:00", lat:56.842, lng:60.596, hasStories:true, hasMenu:true, desc:"Омакасе и à la carte от шеф-повара из Токио.", photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80", reviews:[{name:"Олег Н.",date:"2 апр",stars:5,text:"Омакасе — незабываемо!"}], menu:{cats:["Роллы","Нигири"],dishes:[{name:"Дракон ролл",cat:"Роллы",weight:"280г",price:890,photo:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&q=80"},{name:"Лосось нигири",cat:"Нигири",weight:"60г",price:320,photo:"https://images.unsplash.com/photo-1617196034099-3e15d5fa70fc?w=400&q=80"}]} }
+  { id:1, phone:"+73432101010", whoIsHere:[{name:"Алекс Т."},{name:"Мария Р."},{name:"Денис В."}], name:"Buzon", cat:"Ресторан", cuisine:["Авторская","Мясо"], rating:4.8, check:2200, address:"ул. Ленина, 5", open:true, hours:"12:00–00:00", lat:56.838, lng:60.597, hasStories:true, hasMenu:true, desc:"Авторская кухня от шеф-повара Дмитрия Буй. Уютное пространство с открытой кухней.", photo:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80", reviews:[{name:"Анна К.",date:"2 мар",stars:5,text:"Невероятная кухня, всё свежее и вкусное!"},{name:"Максим Д.",date:"15 фев",stars:5,text:"Лучший ресторан Екатеринбурга!"}], menu:{cats:["Закуски","Главное","Десерты"],dishes:[{name:"Тартар из говядины",cat:"Закуски",weight:"180г",price:890,photo:"https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&q=80"},{name:"Рибай на углях",cat:"Главное",weight:"320г",price:2400,photo:"https://images.unsplash.com/photo-1558030006-450675393462?w=400&q=80"},{name:"Крем-брюле",cat:"Десерты",weight:"120г",price:450,photo:"https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=400&q=80"}]} },
+  { id:2, phone:"+73432202020", whoIsHere:[], name:"Своя компания", cat:"Кафе", cuisine:["Европейская","Завтраки"], rating:4.6, check:800, address:"пр. Ленина, 25", open:true, hours:"08:00–23:00", lat:56.840, lng:60.601, hasStories:false, hasMenu:true, desc:"Уютное кафе для завтраков и рабочих встреч. Большой выбор кофе.", photo:"https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80", reviews:[{name:"Ирина С.",date:"1 апр",stars:4,text:"Хороший кофе, приятная атмосфера."}], menu:{cats:["Завтраки","Напитки"],dishes:[{name:"Авокадо тост",cat:"Завтраки",weight:"220г",price:380,photo:"https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?w=400&q=80"},{name:"Капучино",cat:"Напитки",weight:"300мл",price:220,photo:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80"}]} },
+  { id:3, phone:"+73432303030", whoIsHere:[{name:"Гия Б."},{name:"Светлана Н."},{name:"Олег Д."},{name:"Ирина Ф."}], name:"Хачапури и вино", cat:"Ресторан", cuisine:["Грузинская","Вино"], rating:4.7, check:1800, address:"ул. Вайнера, 12", open:true, hours:"11:00–01:00", lat:56.835, lng:60.593, hasStories:true, hasMenu:false, desc:"Лучшие хачапури по-аджарски и натуральное вино от сомелье.", photo:"https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=800&q=80", reviews:[{name:"Георгий В.",date:"28 мар",stars:5,text:"Хачапури — лучшие в городе!"}], menu:null },
+  { id:4, phone:"+73432404040", whoIsHere:[], name:"Döner Haus", cat:"Фастфуд", cuisine:["Турецкая","Стритфуд"], rating:4.4, check:450, address:"ул. 8 Марта, 46", open:false, hours:"10:00–22:00", lat:56.843, lng:60.606, hasStories:false, hasMenu:false, desc:"Аутентичные донеры по берлинскому рецепту.", photo:"https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&q=80", reviews:[], menu:null },
+  { id:5, phone:"+73432505050", whoIsHere:[{name:"Катя М."},{name:"Юля К."}], name:"Portraits Coffee", cat:"Кафе", cuisine:["Specialty","Десерты"], rating:4.9, check:650, address:"ул. Сакко и Ванцетти, 3", open:true, hours:"08:00–22:00", lat:56.837, lng:60.599, hasStories:true, hasMenu:true, desc:"Specialty кофе третьей волны. Каждый напиток — произведение искусства.", photo:"https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80", reviews:[{name:"Катя М.",date:"3 апр",stars:5,text:"Лучший флэт уайт в городе!"},{name:"Дима П.",date:"1 апр",stars:5,text:"Атмосфера невероятная."}], menu:{cats:["Кофе","Еда"],dishes:[{name:"Флэт уайт",cat:"Кофе",weight:"200мл",price:280,photo:"https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&q=80"},{name:"Матча латте",cat:"Кофе",weight:"300мл",price:320,photo:"https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80"},{name:"Круассан миндальный",cat:"Еда",weight:"120г",price:290,photo:"https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80"}]} },
+  { id:6, phone:"+73432606060", whoIsHere:[], name:"Ramen Street", cat:"Ресторан", cuisine:["Японская","Рамен"], rating:4.7, check:900, address:"ул. Красноармейская, 10", open:true, hours:"11:00–23:00", lat:56.841, lng:60.594, hasStories:false, hasMenu:false, desc:"Настоящий японский рамен на насыщенном бульоне.", photo:"https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80", reviews:[], menu:null },
+  { id:7, phone:"+73432707070", whoIsHere:[{name:"Паша М."}], name:"Pizzeria Moderna", cat:"Пиццерия", cuisine:["Итальянская","Пицца"], rating:4.5, check:750, address:"ул. Малышева, 31", open:true, hours:"11:00–23:00", lat:56.836, lng:60.608, hasStories:false, hasMenu:false, desc:"Неаполитанская пицца в дровяной печи.", photo:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", reviews:[], menu:null },
+  { id:8, phone:"+73432808080", whoIsHere:[], name:"Green Spot", cat:"Веганское", cuisine:["Веганская","Здоровое"], rating:4.6, check:700, address:"ул. Тургенева, 22", open:true, hours:"09:00–21:00", lat:56.839, lng:60.602, hasStories:false, hasMenu:false, desc:"Полностью растительное меню без компромиссов.", photo:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80", reviews:[], menu:null },
+  { id:9, phone:"+73432909090", whoIsHere:[], name:"Пельмени Club", cat:"Кафе", cuisine:["Русская","Пельмени"], rating:4.3, check:500, address:"ул. Первомайская, 15", open:false, hours:"11:00–22:00", lat:56.834, lng:60.610, hasStories:false, hasMenu:false, desc:"Ручная лепка пельменей при вас.", photo:"https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80", reviews:[], menu:null },
+  { id:10, phone:"+73432100100", whoIsHere:[], name:"Sushi Moto", cat:"Суши", cuisine:["Японская","Суши"], rating:4.5, check:1200, address:"ул. Куйбышева, 44", open:true, hours:"12:00–00:00", lat:56.842, lng:60.596, hasStories:true, hasMenu:true, desc:"Омакасе и à la carte от шеф-повара из Токио.", photo:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80", reviews:[{name:"Олег Н.",date:"2 апр",stars:5,text:"Омакасе — незабываемо!"}], menu:{cats:["Роллы","Нигири"],dishes:[{name:"Дракон ролл",cat:"Роллы",weight:"280г",price:890,photo:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&q=80"},{name:"Лосось нигири",cat:"Нигири",weight:"60г",price:320,photo:"https://images.unsplash.com/photo-1617196034099-3e15d5fa70fc?w=400&q=80"}]} }
 ];
 
 const storiesData = {
@@ -1255,6 +1293,52 @@ function triggerHeartPop(btn) {
   btn.addEventListener('animationend', () => btn.classList.remove('heart-pop'), { once: true });
 }
 
+function renderWhoIsHere(venueId) {
+  const v = venues.find(x => x.id === venueId);
+  if (!v) return;
+  const block = document.getElementById('whoIsHereBlock');
+  const avatarsEl = document.getElementById('whoIsHereAvatars');
+  const countEl = document.getElementById('whoIsHereCount');
+
+  // Собираем список: фиксированные из данных + текущий пользователь если чекинился
+  const checkinBtn = document.getElementById('checkinBtn');
+  const userCheckedIn = checkinBtn && checkinBtn.dataset.checked === '1';
+  const base = (v.whoIsHere || []).slice();
+  if (userCheckedIn) base.unshift({ name: 'Вы', isYou: true });
+
+  if (base.length === 0) {
+    block.style.display = 'none';
+    return;
+  }
+
+  const MAX_SHOW = 5;
+  const shown = base.slice(0, MAX_SHOW);
+  const extra = base.length - MAX_SHOW;
+
+  avatarsEl.innerHTML = shown.map((p, i) => {
+    const initial = p.name[0].toUpperCase();
+    const isYou = p.isYou;
+    const bg = isYou ? '#FF3CAC' : '#FF3CAC';
+    const border = isYou ? '2px solid #fff' : '2px solid #0D0D0D';
+    return `<div class="who-avatar" style="background:${bg}; border:${border}; z-index:${shown.length - i};" title="${p.name}">${initial}</div>`;
+  }).join('');
+
+  if (extra > 0) {
+    avatarsEl.innerHTML += `<div class="who-avatar" style="background:rgba(255,255,255,0.12); border:2px solid #0D0D0D; color:rgba(255,255,255,0.7); font-size:11px;">+${extra}</div>`;
+  }
+
+  const word = base.length === 1 ? 'человек' : base.length < 5 ? 'человека' : 'человек';
+  countEl.innerHTML = `<strong style="color:#fff; font-weight:600;">${base.length}</strong> ${word} сейчас здесь`;
+
+  if (block.style.display === 'none') {
+    block.style.display = 'block';
+    const inner = block.querySelector('div');
+    inner.classList.remove('who-is-here-enter');
+    void inner.offsetWidth;
+    inner.classList.add('who-is-here-enter');
+  }
+}
+
 function venueCall() {
   const v = venues.find(x => x.id === currentVenueId);
   if (v && v.phone) {
@@ -1281,6 +1365,7 @@ function doCheckin(btn) {
     icon.style.color = '#fff';
     label.style.color = '#fff';
     showToast('Чекин подтверждён');
+    if (currentVenueId) renderWhoIsHere(currentVenueId);
   }
 }
 
@@ -1419,6 +1504,9 @@ function openVenue(id) {
 
   // Desc
   document.getElementById('venueDescEl').textContent = v.desc;
+
+  // Who is here
+  renderWhoIsHere(id);
 
   // Reviews — store venue id for "all reviews" sheet
   _allReviewsVenueId = id;

@@ -1071,7 +1071,7 @@ body {
         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px 14px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-size:18px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif;">Сейчас здесь</span>
-            <span id="whoSheetCount" style="background:rgba(255,60,172,0.15); border:1px solid rgba(255,60,172,0.3); border-radius:20px; padding:4px 10px; font-size:13px; font-weight:600; color:#FF3CAC; font-family:'Space Grotesk',sans-serif;"></span>
+            <span id="whoSheetCount" style="background:#CAFF00; border:none; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; color:#0D0D0D; font-family:'Space Grotesk',sans-serif;"></span>
           </div>
           <button onclick="closeWhoIsHere()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
@@ -1571,7 +1571,7 @@ function openWhoIsHere() {
       ? 'border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(255,60,172,0.2),0 4px 14px rgba(255,60,172,0.3);'
       : 'border:2.5px solid #FF3CAC;box-shadow:0 0 0 1px rgba(255,60,172,0.12),0 4px 12px rgba(255,60,172,0.2);';
     const nameColor = isYou ? '#FF3CAC' : '#EBEBEB';
-    const timeColor = isYou ? 'rgba(255,60,172,0.8)' : 'rgba(255,60,172,0.55)';
+    const timeColor = isYou ? 'rgba(255,255,255,0.70)' : 'rgba(255,255,255,0.50)';
     const divider = idx < lastIdx ? 'border-bottom:1px solid rgba(255,255,255,0.06);' : '';
     const icon = isYou
       ? '<span class="material-symbols-outlined" style="font-size:16px;color:rgba(255,60,172,0.6);flex-shrink:0;">check_circle</span>'

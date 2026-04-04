@@ -379,6 +379,31 @@ body {
 }
 .who-avatar:first-child { margin-left: 0; }
 
+/* ─── WHO IS HERE SHEET ───────────────────────────────── */
+#whoIsHereOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 155;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: flex-end;
+}
+#whoIsHereOverlay.visible { display: flex; }
+.who-is-here-sheet {
+  width: 100%;
+  height: auto;
+  max-height: 75%;
+  border-radius: 24px 24px 0 0;
+  background: rgba(10,15,20,0.96);
+  backdrop-filter: blur(48px) saturate(200%);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp 0.38s cubic-bezier(0.32,0.72,0,1) both;
+  overflow: hidden;
+}
+
 /* ─── TOAST ────────────────────────────────────────────────── */
 @keyframes toastIn {
   0%   { opacity: 0; transform: translateX(-50%) translateY(-32px) scale(0.92); }
@@ -660,9 +685,12 @@ body {
         </div>
 
         <!-- Who's here block -->
-        <div id="whoIsHereBlock" style="display:none; margin-bottom:20px;">
-          <div style="background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px;">
-            <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#CAFF00; margin-bottom:12px;">СЕЙЧАС ЗДЕСЬ</div>
+        <div id="whoIsHereBlock" style="display:none; margin-bottom:20px;" onclick="openWhoIsHere()">
+          <div style="background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; cursor:pointer; transition:background 0.18s;" onmouseenter="this.style.background='rgba(255,60,172,0.08)'" onmouseleave="this.style.background='rgba(0,0,0,0.42)'">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+              <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#CAFF00;">СЕЙЧАС ЗДЕСЬ</div>
+              <span class="material-symbols-outlined" style="font-size:14px; color:rgba(255,255,255,0.3);">chevron_right</span>
+            </div>
             <div style="display:flex; align-items:center; gap:12px;">
               <div id="whoIsHereAvatars" style="display:flex;"></div>
               <div id="whoIsHereCount" style="font-size:13px; color:rgba(255,255,255,0.55); font-family:'Space Grotesk',sans-serif;"></div>
@@ -928,6 +956,27 @@ body {
          OVERLAY: REVIEW FORM
     ═══════════════════════════════════════════════════════ -->
     <!-- ═════════════════════════════════════════════════════════
+         OVERLAY: WHO IS HERE SHEET
+    ═════════════════════════════════════════════════════════ -->
+    <div id="whoIsHereOverlay" onclick="if(event.target===this)closeWhoIsHere()">
+      <div class="who-is-here-sheet">
+        <div style="display:flex; justify-content:center; padding:12px 0 0;">
+          <div style="width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px;"></div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px 14px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif;">Сейчас здесь</span>
+            <span id="whoSheetCount" style="background:rgba(255,60,172,0.15); border:1px solid rgba(255,60,172,0.3); border-radius:20px; padding:4px 10px; font-size:13px; font-weight:600; color:#FF3CAC; font-family:'Space Grotesk',sans-serif;"></span>
+          </div>
+          <button onclick="closeWhoIsHere()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
+          </button>
+        </div>
+        <div id="whoSheetList" style="flex:1; overflow-y:auto; padding:0 20px 24px; display:flex; flex-direction:column; gap:10px;"></div>
+      </div>
+    </div>
+
+        <!-- ═════════════════════════════════════════════════════════
          OVERLAY: ALL REVIEWS SHEET
     ═════════════════════════════════════════════════════════ -->
     <div id="allReviewsOverlay" onclick="if(event.target===this)closeAllReviews()">
@@ -1291,6 +1340,38 @@ function triggerHeartPop(btn) {
   void btn.offsetWidth; // reflow
   btn.classList.add('heart-pop');
   btn.addEventListener('animationend', () => btn.classList.remove('heart-pop'), { once: true });
+}
+
+function openWhoIsHere() {
+  const v = venues.find(x => x.id === currentVenueId);
+  if (!v) return;
+  const checkinBtn = document.getElementById('checkinBtn');
+  const userCheckedIn = checkinBtn && checkinBtn.dataset.checked === '1';
+  const base = (v.whoIsHere || []).slice();
+  if (userCheckedIn) base.unshift({ name: 'Вы', time: 'сейчас', isYou: true });
+
+  // Добавляем время для пресетных пользователей
+  const times = ['недавно', '5 минут назад', '12 минут назад', '18 минут назад', '25 минут назад'];
+  const list = base.map((p, i) => ({ ...p, time: p.time || times[i] || 'недавно' }));
+
+  document.getElementById('whoSheetCount').textContent = list.length;
+
+  const listEl = document.getElementById('whoSheetList');
+  listEl.innerHTML = list.map(p => `
+    <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); border-radius:16px; ${p.isYou ? 'border-color:rgba(255,60,172,0.3);' : ''}">
+      <div style="width:44px; height:44px; border-radius:50%; background:#FF3CAC; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; flex-shrink:0; ${p.isYou ? 'border:2px solid #fff;' : ''}">${p.name[0].toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px; font-weight:600; color:${p.isYou ? '#FF3CAC' : '#fff'}; font-family:'Space Grotesk',sans-serif;">${p.name}</div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; font-family:'Space Grotesk',sans-serif;">${p.time}</div>
+      </div>
+      ${p.isYou ? '<span class="material-symbols-outlined" style="font-size:16px; color:#FF3CAC;">check_circle</span>' : '<span class="material-symbols-outlined" style="font-size:16px; color:rgba(255,60,172,0.5);">pin_drop</span>'}
+    </div>`).join('');
+
+  document.getElementById('whoIsHereOverlay').classList.add('visible');
+}
+
+function closeWhoIsHere() {
+  document.getElementById('whoIsHereOverlay').classList.remove('visible');
 }
 
 function renderWhoIsHere(venueId) {

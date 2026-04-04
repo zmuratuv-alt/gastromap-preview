@@ -394,7 +394,7 @@ body {
 /* Heart btn */
 .heart-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .heart-btn svg { transition: all 0.2s; }
-.heart-btn.fav-on svg { fill: #ff4d6d; stroke: #ff4d6d; }
+.heart-btn.fav-on svg { fill: #FF3CAC; stroke: #FF3CAC; }
 .heart-btn.fav-off svg { fill: none; stroke: rgba(255,255,255,0.6); stroke-width: 1.8; }
 
 /* profile activity */
@@ -612,9 +612,9 @@ body {
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">near_me</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Маршрут</span>
           </button>
-          <button onclick="showToast('Чекин подтверждён')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
-            <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">pin_drop</span>
-            <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Чекин</span>
+          <button id="checkinBtn" onclick="doCheckin(this)" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
+            <span class="material-symbols-outlined" style="font-size:20px; color:rgba(255,255,255,0.85); transition:color 0.2s;">pin_drop</span>
+            <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5); transition:color 0.2s;">Чекин</span>
           </button>
         </div>
 
@@ -998,9 +998,16 @@ let mapMarkers = {};
 
 /* ─── Toast ──────────────────────────────────────────────── */
 let toastTimer = null;
-function showToast(msg) {
+function showToast(msg, type) {
   const el = document.getElementById('toastEl');
   el.textContent = msg;
+  el.style.background = type === 'pink'
+    ? 'rgba(255,60,172,0.18)'
+    : 'rgba(13,13,13,0.95)';
+  el.style.border = type === 'pink'
+    ? '1px solid rgba(255,60,172,0.55)'
+    : '1px solid rgba(255,255,255,0.12)';
+  el.style.color = type === 'pink' ? '#FF3CAC' : '#fff';
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
@@ -1219,6 +1226,26 @@ function toggleVenueFav() {
   toggleFav(currentVenueId);
 }
 
+function doCheckin(btn) {
+  const icon = btn.querySelector('.material-symbols-outlined');
+  const label = btn.querySelectorAll('span')[1];
+  const isActive = btn.dataset.checked === '1';
+  if (isActive) {
+    btn.dataset.checked = '0';
+    btn.style.background = 'rgba(0,0,0,0.42)';
+    btn.style.border = '1px solid rgba(255,255,255,0.08)';
+    icon.style.color = 'rgba(255,255,255,0.85)';
+    label.style.color = 'rgba(255,255,255,0.5)';
+  } else {
+    btn.dataset.checked = '1';
+    btn.style.background = 'rgba(255,60,172,0.15)';
+    btn.style.border = '1px solid rgba(255,60,172,0.55)';
+    icon.style.color = '#FF3CAC';
+    label.style.color = '#FF3CAC';
+    showToast('Чекин подтверждён', 'pink');
+  }
+}
+
 function renderFavorites() {
   const content = document.getElementById('favoritesContent');
   if (!content) return;
@@ -1350,8 +1377,7 @@ function openVenue(id) {
   const heartBtn = document.getElementById('venueHeartBtn');
   heartBtn.classList.toggle('fav-on', favorites.has(id));
   heartBtn.classList.toggle('fav-off', !favorites.has(id));
-  heartBtn.querySelector('svg').style.fill = favorites.has(id) ? '#ff4d6d' : 'none';
-  heartBtn.querySelector('svg').style.stroke = favorites.has(id) ? '#ff4d6d' : 'rgba(255,255,255,0.7)';
+  // fill/stroke управляется через CSS .fav-on/.fav-off
 
   // Desc
   document.getElementById('venueDescEl').textContent = v.desc;
@@ -1651,7 +1677,7 @@ function submitReview() {
     }
   }
   closeReview();
-  showToast('Отзыв опубликован');
+  showToast('Отзыв опубликован', 'pink');
 
   // Refresh venue if open
   if (currentVenueId && currentScreen === 'venueScreen') {

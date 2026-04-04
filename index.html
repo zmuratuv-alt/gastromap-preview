@@ -1542,24 +1542,25 @@ function openWhoIsHere() {
   document.getElementById('whoSheetCount').textContent = list.length;
 
   const listEl = document.getElementById('whoSheetList');
-  listEl.innerHTML = list.map(function(p) {
+  const lastIdx = list.length - 1;
+  listEl.innerHTML = list.map(function(p, idx) {
     const isYou = p.isYou;
     const dataAttr = isYou ? '' : ('data-who="' + p.name + '"');
-    const gradient = isYou
-      ? 'background:linear-gradient(90deg,rgba(255,60,172,0.18) 0%,rgba(255,60,172,0.06) 40%,rgba(0,0,0,0) 100%);'
-      : 'background:linear-gradient(90deg,rgba(255,60,172,0.10) 0%,rgba(255,60,172,0.03) 40%,rgba(0,0,0,0) 100%);';
+    const avatarBg = isYou ? '#1F1F1F' : '#1F1F1F';
     const avatarRing = isYou
-      ? 'border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 14px rgba(255,60,172,0.35);'
-      : 'border:1.5px solid rgba(255,60,172,0.35);box-shadow:0 0 12px rgba(255,60,172,0.12);';
+      ? 'border:2.5px solid #fff;box-shadow:0 0 0 1px rgba(255,60,172,0.2),0 4px 14px rgba(255,60,172,0.3);'
+      : 'border:2.5px solid #FF3CAC;box-shadow:0 0 0 1px rgba(255,60,172,0.12),0 4px 12px rgba(255,60,172,0.2);';
     const nameColor = isYou ? '#FF3CAC' : '#EBEBEB';
+    const timeColor = isYou ? 'rgba(255,60,172,0.8)' : 'rgba(255,60,172,0.55)';
+    const divider = idx < lastIdx ? 'border-bottom:1px solid rgba(255,255,255,0.06);' : '';
     const icon = isYou
-      ? '<span class="material-symbols-outlined" style="font-size:15px;color:rgba(255,60,172,0.7);flex-shrink:0;">check_circle</span>'
-      : '<span class="material-symbols-outlined" style="font-size:15px;color:rgba(255,255,255,0.18);flex-shrink:0;">chevron_right</span>';
-    return '<div class="who-row" ' + dataAttr + ' style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;' + gradient + (isYou ? '' : 'cursor:pointer;') + 'transition:opacity 0.15s;">'
-      + '<div style="width:40px;height:40px;border-radius:50%;background:#FF3CAC;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;' + avatarRing + '">' + p.name[0].toUpperCase() + '</div>'
+      ? '<span class="material-symbols-outlined" style="font-size:16px;color:rgba(255,60,172,0.6);flex-shrink:0;">check_circle</span>'
+      : '<span class="material-symbols-outlined" style="font-size:16px;color:rgba(255,255,255,0.15);flex-shrink:0;">chevron_right</span>';
+    return '<div class="who-row" ' + dataAttr + ' style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:transparent;' + divider + (isYou ? '' : 'cursor:pointer;') + '">'
+      + '<div style="width:44px;height:44px;border-radius:50%;background:' + avatarBg + ';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#FF3CAC;flex-shrink:0;' + avatarRing + '">' + p.name[0].toUpperCase() + '</div>'
       + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:15px;font-weight:500;color:' + nameColor + ';font-family:Space Grotesk,sans-serif;letter-spacing:-0.01em;">' + p.name + '</div>'
-      + '<div style="font-size:12px;font-weight:400;color:rgba(255,255,255,0.35);margin-top:2px;font-family:Space Grotesk,sans-serif;">' + p.time + '</div>'
+      + '<div style="font-size:15px;font-weight:600;color:' + nameColor + ';font-family:Space Grotesk,sans-serif;line-height:1.2;">' + p.name + '</div>'
+      + '<div style="font-size:12px;font-weight:400;color:' + timeColor + ';margin-top:3px;font-family:Space Grotesk,sans-serif;">' + p.time + '</div>'
       + '</div>' + icon + '</div>';
   }).join('');
   listEl.onclick = function(e) {

@@ -521,7 +521,7 @@ body {
         <!-- Address + status -->
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
           <span class="material-symbols-outlined" style="color:#CAFF00; font-size:18px;">location_on</span>
-          <span id="venueAddrEl" style="font-size:13px; color:rgba(255,255,255,0.65); flex:1;"></span>
+          <span id="venueAddrEl" style="font-size:13px; color:rgba(255,255,255,0.80); flex:1;"></span>
           <span id="venueStatusBadge" style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; flex-shrink:0;"></span>
         </div>
 
@@ -537,38 +537,38 @@ body {
         </div>
 
         <!-- Working hours -->
-        <div style="display:flex; align-items:center; gap:8px; padding:14px 16px; border-radius:14px; background:rgba(255,255,255,0.07); border:0.5px solid rgba(255,255,255,0.10); margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:8px; padding:14px 16px; border-radius:14px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08); margin-bottom:20px;">
           <span class="material-symbols-outlined" style="color:#CAFF00; font-size:18px;">schedule</span>
-          <span id="venueHoursEl" style="font-size:13px; color:rgba(255,255,255,0.75); font-weight:500;"></span>
+          <span id="venueHoursEl" style="font-size:13px; color:rgba(255,255,255,0.92); font-weight:500;"></span>
         </div>
 
         <!-- Rating block -->
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.09);">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; padding:16px; border-radius:16px; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
           <div>
             <div id="venueRatingBig" style="font-size:44px; font-weight:700; color:#CAFF00; line-height:1; text-shadow:0 0 20px rgba(202,255,0,0.3);"></div>
             <div id="venueRatingStars" style="display:flex; gap:2px; margin-top:4px;"></div>
           </div>
           <div style="flex:1;">
-            <div id="venueReviewCount" style="font-size:12px; color:rgba(255,255,255,0.45); margin-bottom:4px;"></div>
-            <div id="venueCheckEl" style="font-size:14px; color:rgba(255,255,255,0.7); font-weight:600;"></div>
+            <div id="venueReviewCount" style="font-size:12px; color:rgba(255,255,255,0.55); margin-bottom:4px;"></div>
+            <div id="venueCheckEl" style="font-size:14px; color:rgba(255,255,255,0.85); font-weight:600;"></div>
           </div>
         </div>
 
         <!-- Actions grid -->
         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:24px;">
-          <button onclick="openReview()" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; border:none; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border:0.5px solid rgba(255,255,255,0.08);">
+          <button onclick="openReview()" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">chat_bubble</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Отзыв</span>
           </button>
-          <button onclick="showToast('Ссылка скопирована')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; border:none; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border:0.5px solid rgba(255,255,255,0.08);">
+          <button onclick="showToast('Ссылка скопирована')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">share</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Поделиться</span>
           </button>
-          <button onclick="showToast('Открываю маршрут...')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; border:none; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border:0.5px solid rgba(255,255,255,0.08);">
+          <button onclick="showToast('Открываю маршрут...')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">near_me</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Маршрут</span>
           </button>
-          <button onclick="showToast('Чекин подтверждён')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; border:none; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border:0.5px solid rgba(255,255,255,0.08);">
+          <button onclick="showToast('Чекин подтверждён')" class="glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px 4px; border-radius:16px; cursor:pointer; transition:all 0.2s; background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.08);">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.85); font-size:20px;">pin_drop</span>
             <span style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Чекин</span>
           </button>
@@ -577,7 +577,7 @@ body {
         <!-- About desc -->
         <div style="margin-bottom:24px;">
           <div style="font-size:9px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#CAFF00; margin-bottom:10px;">О ЗАВЕДЕНИИ</div>
-          <p id="venueDescEl" style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.65; font-weight:400;"></p>
+          <p id="venueDescEl" style="font-size:13px; color:rgba(255,255,255,0.75); line-height:1.65; font-weight:400;"></p>
         </div>
 
         <!-- Reviews -->

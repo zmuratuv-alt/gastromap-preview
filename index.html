@@ -352,6 +352,14 @@ body {
   box-shadow: 0 0 12px rgba(202,255,0,0.3);
 }
 
+@keyframes checkinPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  65%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+.checkin-pop { animation: checkinPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+
 /* ─── WHO IS HERE ─────────────────────────────────────── */
 @keyframes whoIsHereIn {
   0%   { opacity: 0; transform: translateY(-8px) scale(0.96); }
@@ -1610,6 +1618,11 @@ function doCheckin(btn) {
     btn.style.border = '1px solid #FF3CAC';
     icon.style.color = '#fff';
     label.style.color = '#fff';
+    // pop-scale анимация
+    btn.classList.remove('checkin-pop');
+    void btn.offsetWidth;
+    btn.classList.add('checkin-pop');
+    btn.addEventListener('animationend', () => btn.classList.remove('checkin-pop'), { once: true });
     showToast('Чекин подтверждён');
     if (currentVenueId) renderWhoIsHere(currentVenueId);
   }

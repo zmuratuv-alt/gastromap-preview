@@ -492,11 +492,11 @@ body {
     <!-- ═══════════════════════════════════════════════════════
          SCREEN 3: VENUE DETAIL
     ═══════════════════════════════════════════════════════ -->
-    <div id="venueScreen" class="screen" style="overflow-y:auto; position:relative; background:#0D0D0D;">
+    <div id="venueScreen" class="screen" style="overflow-y:auto; position:relative; background:#0D0D0D; background-size:cover; background-position:center; background-attachment:local;">
       <!-- Hero -->
-      <div class="venue-hero" style="position:relative; height:360px; flex-shrink:0;">
-        <img id="venueHeroImg" src="" alt="" style="position:absolute; top:0; left:0; width:100%; height:480px; object-fit:cover; filter:brightness(0.9) saturate(1.1);" />
-        <div style="position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 35%, rgba(0,0,0,0.05) 65%);"></div>
+      <div class="venue-hero" style="position:relative; height:320px; flex-shrink:0; overflow:hidden;">
+        <img id="venueHeroImg" src="" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:brightness(0.88) saturate(1.15);" />
+        <div style="position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.1) 75%);"></div>
         <!-- Top controls -->
         <div style="position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; z-index:10;">
           <button onclick="showScreen('catalogScreen')" class="glass" style="width:44px; height:44px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
@@ -509,7 +509,7 @@ body {
       </div>
 
       <!-- Floating glass card -->
-      <div style="margin-top:-120px; margin-left:8px; margin-right:8px; border-radius:32px; background:rgba(10,15,20,0.55); backdrop-filter:blur(44px) saturate(200%) brightness(1.08); -webkit-backdrop-filter:blur(44px) saturate(200%) brightness(1.08); border:1px solid rgba(200,230,255,0.14); box-shadow:inset 0 1px 0 rgba(255,255,255,0.09), 0 24px 64px rgba(0,0,0,0.55); padding:24px; position:relative; z-index:10; margin-bottom:20px;">
+      <div style="margin-top:-32px; margin-left:0; margin-right:0; border-radius:28px 28px 0 0; background:rgba(10,15,20,0.60); backdrop-filter:blur(48px) saturate(220%) brightness(1.06); -webkit-backdrop-filter:blur(48px) saturate(220%) brightness(1.06); border-top:1px solid rgba(200,230,255,0.15); border-left:none; border-right:none; border-bottom:none; box-shadow:inset 0 1px 0 rgba(255,255,255,0.10); padding:24px 20px; position:relative; z-index:10; margin-bottom:0;">
 
         <!-- Category + name -->
         <div style="margin-bottom:16px;">
@@ -1195,6 +1195,11 @@ function openVenue(id) {
 
   // Hero
   document.getElementById('venueHeroImg').src = v.photo;
+  // Set venue photo as bg for ice-glass effect
+  const vs = document.getElementById('venueScreen');
+  vs.style.backgroundImage = `url(${v.photo})`;
+  vs.style.backgroundSize = 'cover';
+  vs.style.backgroundPosition = 'center top';
 
   // Category + name
   document.getElementById('venueCatBadge').textContent = v.cat;

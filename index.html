@@ -394,6 +394,19 @@ body {
 }
 .who-avatar:first-child { margin-left: 0; }
 
+@keyframes pulseDot {
+  0%   { box-shadow: 0 0 0 0 rgba(232,80,122,0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(232,80,122,0); }
+  100% { box-shadow: 0 0 0 0 rgba(232,80,122,0); }
+}
+.who-pulse-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #E8507A;
+  flex-shrink: 0;
+  animation: pulseDot 2.2s ease-out infinite;
+}
+
 /* ─── WHO IS HERE SHEET ───────────────────────────────── */
 #whoIsHereOverlay {
   position: absolute;
@@ -410,7 +423,12 @@ body {
   height: auto;
   max-height: 75%;
   border-radius: 24px 24px 0 0;
-  background: rgba(255,255,255,0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.10) 0%,
+    rgba(220,80,120,0.06) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
   backdrop-filter: blur(40px) saturate(180%) brightness(1.15);
   -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.15);
   border-top: 1px solid rgba(255,255,255,0.15);
@@ -1560,8 +1578,8 @@ function openWhoIsHere() {
     return '<div class="who-row" ' + dataAttr + ' style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:transparent;' + divider + (isYou ? '' : 'cursor:pointer;') + '">'
       + '<div style="width:44px;height:44px;border-radius:50%;background:' + avatarBg + ';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#FF3CAC;flex-shrink:0;' + avatarRing + '">' + p.name[0].toUpperCase() + '</div>'
       + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:15px;font-weight:600;color:' + nameColor + ';font-family:Space Grotesk,sans-serif;line-height:1.2;">' + p.name + '</div>'
-      + '<div style="font-size:12px;font-weight:400;color:' + timeColor + ';margin-top:3px;font-family:Space Grotesk,sans-serif;">' + p.time + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;">' + '<div style="font-size:15px;font-weight:600;color:' + nameColor + ';font-family:Space Grotesk,sans-serif;line-height:1.2;">' + p.name + '</div>' + (idx === 0 && !isYou ? '<div class="who-pulse-dot"></div>' : '') + '</div>'
+      + '<div style="font-size:11px;font-weight:400;color:' + timeColor + ';margin-top:3px;font-family:Space Grotesk,sans-serif;letter-spacing:0.06em;text-transform:uppercase;">' + p.time + '</div>'
       + '</div>' + icon + '</div>';
   }).join('');
   listEl.onclick = function(e) {

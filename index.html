@@ -1477,7 +1477,7 @@ function toggleFollow(btn) {
     btn.style.border = 'none';
     icon.textContent = 'person_add';
     btn.childNodes[btn.childNodes.length - 1].textContent = ' Подписаться';
-    showToast('Подписка отменена');
+    showToast('Отписка от ' + name);
   } else {
     followedUsers.add(name);
     btn.style.background = 'transparent';
@@ -1485,7 +1485,7 @@ function toggleFollow(btn) {
     btn.style.border = '1px solid rgba(202,255,0,0.4)';
     icon.textContent = 'person_check';
     btn.childNodes[btn.childNodes.length - 1].textContent = ' Вы подписаны';
-    showToast('Подписка оформлена');
+    showToast('Подписан на ' + name);
   }
 }
 

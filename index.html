@@ -475,11 +475,12 @@ body {
 .heart-btn svg { transition: all 0.2s; }
 @keyframes heartPop {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.28); }
-  70%  { transform: scale(0.92); }
+  35%  { transform: scale(1.32); }
+  65%  { transform: scale(0.9); }
   100% { transform: scale(1); }
 }
-.heart-btn.heart-pop svg { animation: heartPop 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+.heart-btn.heart-pop { animation: heartPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+.heart-btn.heart-pop svg { animation: heartPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
 .heart-btn.fav-on { background: #FF3CAC !important; border-color: #FF3CAC !important; }
 .heart-btn.fav-on svg { fill: #fff; stroke: #fff; }
 .heart-btn.fav-off svg { fill: none; stroke: rgba(255,255,255,0.6); stroke-width: 1.8; }
@@ -1360,7 +1361,7 @@ function renderCatalog() {
           <span style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:500;">от ${v.check}₽</span>
         </div>
       </div>
-      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn ${fav?'fav-on':'fav-off'}" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
+      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn ${fav?'fav-on':'fav-off'}" data-fav-id="${v.id}" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
         <svg viewBox="0 0 24 24" width="16" height="16">
           <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
         </svg>
@@ -1393,8 +1394,15 @@ function toggleFav(id, btn) {
     venueHeart.classList.toggle('fav-off', !favorites.has(id));
     triggerHeartPop(venueHeart);
   }
-  // Re-render catalog if open to update hearts
-  if (currentScreen === 'catalogScreen') renderCatalog();
+  // Обновляем только конкретную кнопку в каталоге — без полного перерендера
+  if (currentScreen === 'catalogScreen') {
+    const catalogBtn = document.querySelector('.heart-btn[data-fav-id="' + id + '"]');
+    if (catalogBtn) {
+      catalogBtn.classList.toggle('fav-on', favorites.has(id));
+      catalogBtn.classList.toggle('fav-off', !favorites.has(id));
+      triggerHeartPop(catalogBtn);
+    }
+  }
   if (currentScreen === 'favoritesScreen') renderFavorites();
 }
 
@@ -1646,7 +1654,7 @@ function renderFavorites() {
         <div style="font-size:${isLarge?'19px':'15px'}; font-weight:700; color:#fff; margin-bottom:5px; line-height:1.1;">${v.name}</div>
         <span style="font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#CAFF00; border:0.5px solid rgba(202,255,0,0.4); padding:2px 8px; border-radius:999px; background:rgba(202,255,0,0.07); display:inline-block; width:fit-content;">${v.cat}</span>
       </div>
-      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn fav-on" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
+      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn fav-on" data-fav-id="${v.id}" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
         <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       </button>
     </div>`;

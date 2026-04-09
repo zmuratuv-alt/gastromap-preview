@@ -62,6 +62,7 @@ body {
   background: #0D0D0D;
   overflow: hidden;
   position: relative;
+  padding-top: env(safe-area-inset-top);
 }
 
 /* ─── Glass surfaces ───────────────────────────────────────── */
@@ -103,7 +104,7 @@ body {
 .bottom-nav {
   position: sticky;
   bottom: 0; left: 0; right: 0;
-  height: 72px; flex-shrink: 0;
+  height: auto; min-height: 72px; flex-shrink: 0;
   background: rgba(13,13,13,0.95);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -112,6 +113,7 @@ body {
   justify-content: space-around;
   align-items: center;
   padding: 0 8px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
   z-index: 100;
 }
 .nav-tab {
@@ -323,7 +325,7 @@ body {
   width: 100%;
   height: 85%;
   border-radius: 24px 24px 0 0;
-  background: rgba(10,15,20,0.96);
+  background: rgba(13,13,13,0.97);
   backdrop-filter: blur(48px) saturate(200%);
   border-top: 1px solid rgba(255,255,255,0.08);
   display: flex;
@@ -454,7 +456,7 @@ body {
 .mini-profile-sheet {
   width: 100%;
   border-radius: 24px 24px 0 0;
-  background: rgba(10,15,20,0.97);
+  background: rgba(26,26,26,0.95);
   backdrop-filter: blur(48px) saturate(220%);
   border-top: 1px solid rgba(255,255,255,0.08);
   padding: 0 0 32px;
@@ -571,7 +573,7 @@ body {
               <span id="sheetAddr"></span>
             </div>
           </div>
-          <button onclick="closeMapSheet()" style="width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.08); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
+          <button onclick="closeMapSheet()" aria-label="Закрыть" style="width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.08); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
             <span class="material-symbols-outlined" style="font-size:18px; color:rgba(255,255,255,0.7);">close</span>
           </button>
         </div>
@@ -582,19 +584,19 @@ body {
 
       <!-- Bottom nav -->
       <nav class="bottom-nav" style="position:absolute; bottom:0; left:0; right:0;">
-        <button class="nav-tab active" onclick="showScreen('mapScreen')" data-screen="mapScreen">
+        <button class="nav-tab active" onclick="showScreen('mapScreen')" data-screen="mapScreen" aria-label="Карта">
           <span class="material-symbols-outlined nav-icon">map</span>
           <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen">
+        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen" aria-label="Каталог">
           <span class="material-symbols-outlined nav-icon">explore</span>
           <span class="nav-label">Каталог</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen">
+        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen" aria-label="Избранное">
           <span class="material-symbols-outlined nav-icon">favorite</span>
           <span class="nav-label">Избранное</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen">
+        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen" aria-label="Профиль">
           <span class="material-symbols-outlined nav-icon">person</span>
           <span class="nav-label">Профиль</span>
         </button>
@@ -638,19 +640,19 @@ body {
 
       <!-- Bottom nav -->
       <nav class="bottom-nav" style="position:sticky; bottom:0; margin-top:auto;">
-        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen">
+        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen" aria-label="Карта">
           <span class="material-symbols-outlined nav-icon">map</span>
           <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-tab active" onclick="showScreen('catalogScreen')" data-screen="catalogScreen">
+        <button class="nav-tab active" onclick="showScreen('catalogScreen')" data-screen="catalogScreen" aria-label="Каталог">
           <span class="material-symbols-outlined nav-icon">explore</span>
           <span class="nav-label">Каталог</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen">
+        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen" aria-label="Избранное">
           <span class="material-symbols-outlined nav-icon">favorite</span>
           <span class="nav-label">Избранное</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen">
+        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen" aria-label="Профиль">
           <span class="material-symbols-outlined nav-icon">person</span>
           <span class="nav-label">Профиль</span>
         </button>
@@ -667,17 +669,17 @@ body {
         <div style="position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.1) 75%);"></div>
         <!-- Top controls -->
         <div style="position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; z-index:10;">
-          <button onclick="showScreen('catalogScreen')" class="glass" style="width:44px; height:44px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <button onclick="showScreen('catalogScreen')" class="glass" aria-label="Поиск" style="width:44px; height:44px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:#fff; font-size:20px;">arrow_back</span>
           </button>
-          <button id="venueHeartBtn" onclick="toggleVenueFav()" class="glass heart-btn fav-off" style="width:44px; height:44px; border-radius:50%; border:none;">
+          <button id="venueHeartBtn" onclick="toggleVenueFav()" class="glass heart-btn fav-off" aria-label="Добавить в избранное" style="width:44px; height:44px; border-radius:50%; border:none;">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
           </button>
         </div>
       </div>
 
       <!-- Floating glass card -->
-      <div style="margin-top:-32px; margin-left:0; margin-right:0; border-radius:28px 28px 0 0; background:rgba(10,15,20,0.60); backdrop-filter:blur(48px) saturate(220%) brightness(1.06); -webkit-backdrop-filter:blur(48px) saturate(220%) brightness(1.06); border-top:1px solid rgba(200,230,255,0.15); border-left:none; border-right:none; border-bottom:none; box-shadow:inset 0 1px 0 rgba(255,255,255,0.10); padding:24px 20px 96px 20px; position:relative; z-index:10; margin-bottom:0;">
+      <div style="margin-top:-32px; margin-left:0; margin-right:0; border-radius:28px 28px 0 0; background:rgba(13,13,13,0.97); backdrop-filter:blur(48px) saturate(220%) brightness(1.06); -webkit-backdrop-filter:blur(48px) saturate(220%) brightness(1.06); border-top:1px solid rgba(255,255,255,0.08); border-left:none; border-right:none; border-bottom:none; box-shadow:inset 0 1px 0 rgba(255,255,255,0.10); padding:24px 20px 96px 20px; position:relative; z-index:10; margin-bottom:0;">
 
         <!-- Category + name -->
         <div style="margin-bottom:16px;">
@@ -778,19 +780,19 @@ body {
 
       <!-- Bottom nav -->
       <nav class="bottom-nav" style="position:sticky; bottom:0;">
-        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen">
+        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen" aria-label="Карта">
           <span class="material-symbols-outlined nav-icon">map</span>
           <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-tab active" onclick="showScreen('catalogScreen')" data-screen="catalogScreen">
+        <button class="nav-tab active" onclick="showScreen('catalogScreen')" data-screen="catalogScreen" aria-label="Каталог">
           <span class="material-symbols-outlined nav-icon">explore</span>
           <span class="nav-label">Каталог</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen">
+        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen" aria-label="Избранное">
           <span class="material-symbols-outlined nav-icon">favorite</span>
           <span class="nav-label">Избранное</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen">
+        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen" aria-label="Профиль">
           <span class="material-symbols-outlined nav-icon">person</span>
           <span class="nav-label">Профиль</span>
         </button>
@@ -906,19 +908,19 @@ body {
 
       <!-- Bottom nav -->
       <nav class="bottom-nav" style="position:sticky; bottom:0;">
-        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen">
+        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen" aria-label="Карта">
           <span class="material-symbols-outlined nav-icon">map</span>
           <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen">
+        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen" aria-label="Каталог">
           <span class="material-symbols-outlined nav-icon">explore</span>
           <span class="nav-label">Каталог</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen">
+        <button class="nav-tab" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen" aria-label="Избранное">
           <span class="material-symbols-outlined nav-icon">favorite</span>
           <span class="nav-label">Избранное</span>
         </button>
-        <button class="nav-tab active" onclick="showScreen('profileScreen')" data-screen="profileScreen">
+        <button class="nav-tab active" onclick="showScreen('profileScreen')" data-screen="profileScreen" aria-label="Профиль">
           <span class="material-symbols-outlined nav-icon">person</span>
           <span class="nav-label">Профиль</span>
         </button>
@@ -939,19 +941,19 @@ body {
 
       <!-- Bottom nav -->
       <nav class="bottom-nav" style="position:sticky; bottom:0;">
-        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen">
+        <button class="nav-tab" onclick="showScreen('mapScreen')" data-screen="mapScreen" aria-label="Карта">
           <span class="material-symbols-outlined nav-icon">map</span>
           <span class="nav-label">Карта</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen">
+        <button class="nav-tab" onclick="showScreen('catalogScreen')" data-screen="catalogScreen" aria-label="Каталог">
           <span class="material-symbols-outlined nav-icon">explore</span>
           <span class="nav-label">Каталог</span>
         </button>
-        <button class="nav-tab active" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen">
+        <button class="nav-tab active" onclick="showScreen('favoritesScreen')" data-screen="favoritesScreen" aria-label="Избранное">
           <span class="material-symbols-outlined nav-icon">favorite</span>
           <span class="nav-label">Избранное</span>
         </button>
-        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen">
+        <button class="nav-tab" onclick="showScreen('profileScreen')" data-screen="profileScreen" aria-label="Профиль">
           <span class="material-symbols-outlined nav-icon">person</span>
           <span class="nav-label">Профиль</span>
         </button>
@@ -974,7 +976,7 @@ body {
           <div id="storiesVenueName" style="font-size:15px; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>
           <div id="storiesLabel" style="font-size:11px; font-weight:600; color:#CAFF00; letter-spacing:0.1em; text-transform:uppercase;"></div>
         </div>
-        <button onclick="closeStories()" class="glass" style="width:36px; height:36px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+        <button onclick="closeStories()" class="glass" aria-label="Закрыть" style="width:36px; height:36px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
           <span class="material-symbols-outlined" style="color:#fff; font-size:18px;">close</span>
         </button>
       </div>
@@ -999,7 +1001,7 @@ body {
             <div style="font-size:20px; font-weight:700; color:#fff;">Меню</div>
             <div id="menuVenueName" style="font-size:12px; color:rgba(255,255,255,0.45); margin-top:2px;"></div>
           </div>
-          <button onclick="closeMenu()" style="width:36px; height:36px; background:rgba(255,255,255,0.07); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <button onclick="closeMenu()" aria-label="Закрыть" style="width:36px; height:36px; background:rgba(255,255,255,0.07); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:18px;">close</span>
           </button>
         </div>
@@ -1024,7 +1026,7 @@ body {
         </div>
         <!-- Close -->
         <div style="display:flex; justify-content:flex-end; padding:8px 16px 0;">
-          <button onclick="closeMiniProfile()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <button onclick="closeMiniProfile()" aria-label="Закрыть" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
           </button>
         </div>
@@ -1073,7 +1075,7 @@ body {
             <span style="font-size:18px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif;">Сейчас здесь</span>
             <span id="whoSheetCount" style="background:#CAFF00; border:none; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; color:#0D0D0D; font-family:'Space Grotesk',sans-serif;"></span>
           </div>
-          <button onclick="closeWhoIsHere()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <button onclick="closeWhoIsHere()" aria-label="Закрыть" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
           </button>
         </div>
@@ -1094,7 +1096,7 @@ body {
             <span style="font-size:18px; font-weight:700; color:#fff; font-family:'Space Grotesk',sans-serif;">Все отзывы</span>
             <span id="allReviewsCount" style="background:rgba(255,255,255,0.08); border-radius:20px; padding:4px 10px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.4); font-family:'Space Grotesk',sans-serif;"></span>
           </div>
-          <button onclick="closeAllReviews()" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <button onclick="closeAllReviews()" aria-label="Закрыть" style="width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
             <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
           </button>
         </div>
@@ -1118,7 +1120,7 @@ body {
     <div id="reviewOverlay" onclick="if(event.target===this)closeReview()">
       <div class="glass" style="width:100%; border-radius:24px; padding:24px; position:relative;">
         <!-- Close -->
-        <button onclick="closeReview()" style="position:absolute; top:16px; right:16px; width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+        <button onclick="closeReview()" aria-label="Закрыть" style="position:absolute; top:16px; right:16px; width:32px; height:32px; background:rgba(255,255,255,0.08); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
           <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.7); font-size:16px;">close</span>
         </button>
         <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom:20px; padding-right:36px;">Написать отзыв</div>
@@ -1247,6 +1249,7 @@ function showScreen(id) {
   });
   const target = document.getElementById(id);
   if (!target) return;
+  target.scrollTop = 0;
   target.style.display = id === 'mapScreen' ? 'block' : 'flex';
   target.classList.add('active');
   currentScreen = id;
@@ -1335,7 +1338,7 @@ function showMapSheet(id) {
   document.getElementById('sheetAddr').textContent = v.address;
   const statusEl = document.getElementById('sheetStatus');
   statusEl.textContent = v.open ? 'Открыто' : 'Закрыто';
-  statusEl.style.color = v.open ? '#4ade80' : '#f87171';
+  statusEl.style.color = v.open ? '#CAFF00' : 'rgba(255,255,255,0.35)';
   statusEl.style.background = v.open ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)';
   statusEl.style.padding = '2px 8px';
   statusEl.style.borderRadius = '999px';
@@ -1411,7 +1414,7 @@ function renderCatalog() {
           <span style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:500;">от ${v.check}₽</span>
         </div>
       </div>
-      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn ${fav?'fav-on':'fav-off'}" data-fav-id="${v.id}" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
+      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn ${fav?'fav-on':'fav-off'}" data-fav-id="${v.id}" aria-label="Добавить в избранное" style="position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
         <svg viewBox="0 0 24 24" width="16" height="16">
           <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
         </svg>
@@ -1722,7 +1725,7 @@ function renderFavorites() {
         <div style="font-size:${isLarge?'19px':'15px'}; font-weight:700; color:#fff; margin-bottom:5px; line-height:1.1;">${v.name}</div>
         <span style="font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#CAFF00; border:0.5px solid rgba(202,255,0,0.4); padding:2px 8px; border-radius:999px; background:rgba(202,255,0,0.07); display:inline-block; width:fit-content;">${v.cat}</span>
       </div>
-      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn fav-on" data-fav-id="${v.id}" style="position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
+      <button onclick="event.stopPropagation(); toggleFav(${v.id}, this)" class="heart-btn fav-on" data-fav-id="${v.id}" aria-label="Убрать из избранного" style="position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
         <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       </button>
     </div>`;
@@ -1733,6 +1736,8 @@ function renderFavorites() {
 
 /* ─── VENUE DETAIL ───────────────────────────────────────── */
 function openVenue(id) {
+  const venueEl = document.getElementById('venueScreen');
+  if (venueEl) venueEl.scrollTop = 0;
   const v = venues.find(x => x.id === id);
   if (!v) return;
   currentVenueId = id;
@@ -1759,8 +1764,8 @@ function openVenue(id) {
   const statusEl = document.getElementById('venueStatusBadge');
   statusEl.textContent = v.open ? 'Открыто' : 'Закрыто';
   statusEl.style.cssText = v.open
-    ? 'color:#4ade80;background:rgba(0,0,0,0.45);font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;flex-shrink:0;border:1px solid rgba(74,222,128,0.25);'
-    : 'color:#f87171;background:rgba(0,0,0,0.45);font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;flex-shrink:0;border:1px solid rgba(248,113,113,0.25);';
+    ? 'color:#CAFF00;background:rgba(0,0,0,0.45);font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;flex-shrink:0;border:1px solid rgba(202,255,0,0.25);'
+    : 'color:rgba(255,255,255,0.35);background:rgba(0,0,0,0.45);font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;flex-shrink:0;border:1px solid rgba(255,255,255,0.12);';
 
   // Stories row
   const storiesRow = document.getElementById('venueStoriesRow');
